@@ -1,2 +1,2 @@
 # cpplearning
-Repo I'm using to host my c++ learning exercises
+This repo contains notes and exercises roughly following the lessons at [learncpp.com](https://www.learncpp.com/)
