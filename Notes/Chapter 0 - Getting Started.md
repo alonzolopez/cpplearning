@@ -25,4 +25,23 @@ Disable compiler extensions by adding the following command to tasks.json to avo
         ],
 ```
 
+# 0.11 - Configuring your compiler: Warning and error levels
+Increase warning levels in gcc by adding the following arg to tasks.json
+```
+"args": [
+            ...,
+            "-Werror"
+        ],
+
+```
+
+# 0.12 - Configuring your compiler: Choosing a language standard
+To configure the language standard in gcc, pass one of the compiler flags (-std=c++11, -std=c++14, -std=c++17, -std=c++2a) for C++11/14/17/2a support, respectively.
+
+"args": [
+            ...,
+            "-std=c++17"
+        ],
+
+```
 
