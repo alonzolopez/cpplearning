@@ -200,3 +200,82 @@ int main()
 **Key insight**: Names used for function params or variables declared in a function body are only visible within the function that declares them. This means local variables within a function can be named without regard for the names of variables in other functions. This helps keep functions independent.
 
 **Best practice: Define your local variables as close to first use as reasonably possible.**
+
+# 2.7 - [Programs with Multiple Files](https://www.learncpp.com/cpp-tutorial/programs-with-multiple-code-files/)
+To build multiple files in VS Code, add the files to tasks.json after the -g flag. For example, to build add.cpp in addition to the active file add it after the -g flag as below
+```json
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "C/C++: g++ build active file",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-g",
+				"${file}",
+				"${fileDirname}/add.cpp",
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}
+```
+The above lets us use the add function from add.cpp in main.cpp.
+
+# 2.8 - [Naming Collisions and an Introduction to Namespaces](https://www.learncpp.com/cpp-tutorial/2-9-naming-collisions-and-an-introduction-to-namespaces/)
+
+Naming collisions often occur in two cases:
+1. Two or more definitions for a function (or global variable) are introduced into separate files that are compiled into the same program. This will result in a linker error as shown below.
+    a.cpp:
+    ```cpp
+    #include <iostream>
+
+    void myFcn(int x)
+    {
+        std::cout << x;
+    }
+    ```
+    main.cpp:
+    ```cpp
+    #include <iostream>
+
+    void myFcn(int x)
+    {
+        std::cout << x;
+    }
+
+    int main()
+    {
+        return 0;
+    }
+    ```
+2. Two or more definitions for a function (or global variable) are introduced in the same file (often via an #include). This will result in a compiler error.
+
+## What is a namespace?
+A **namespace** is a region that allows you to declare names inside of it for the purpose of disambiguation. The namespace provides a scope (called **namespace scope**) to the names declared inside of it which means that names inside the namespace won't be mistaken for identical names in other scopes.
+
+**Key insight:** a name declared in a namespace won't be mistaken for an identical name declared in another scope.
+
+For example, if you put all your identifiers in a namespace called *math*, then the math functions won't collide with other identically named functions outside the math namespace.
+
+## The Global Namespace
+In C++, any name that is not defined inside a class, function, or a namespace is considered to be part of the **global namespace** (a.k.a. **global scope**).
+
+**Key insight:** when you use an identifier that is defined inside a namespace, you have to tell the compiler that the identifier lives inside the namespace.
+
+## Explicit namespace qualifier std::
+:: is caled the **scope resolution operator**. The identifier to the left of the :: indicates the namespace that the name to the right of the :: is contained within. If no identifier is provided to the left of ::, the global namespace is assumed.
+
+**Best practice: use explicit namespace prefixes to access identifiers in a namespace.**
