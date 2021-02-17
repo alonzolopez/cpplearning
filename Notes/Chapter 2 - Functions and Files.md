@@ -201,84 +201,81 @@ int main()
 
 **Best practice: Define your local variables as close to first use as reasonably possible.**
 
-# 2.5 - [Why Functions Are Useful and How to Use Them Effectively](https://www.learncpp.com/cpp-tutorial/why-functions-are-useful-and-how-to-use-them-effectively/)
-Benefits of functions:
-- Organization
-- Reusability
-- Testing
-- Extensibility
-- Abstraction
-
-Some guidance to effectively use functions:
-- Statements that appear more than once in a program should generally be made into a function.
-- Code that has a well-defined set of inputs and outputs is a good candidate for a function, especially if it's complicated.
-- A function should generally perform one and only one task.
-- When a function becomes too long or hard to understand, it can be split into multiple sub-functions. This is called **refactoring**.
-
-# 2.6 - [Forward Declarations and Definitions](https://www.learncpp.com/cpp-tutorial/forward-declarations/)
-
-A **forward declaration** allows us to tell the compiler about the existence of an identifier before actually defining the identifier. We write a forward declaration for a function using a declaration statement called a **function prototype**. The functino prototype consists ofthe function's return type, name, parameters, NO function body, and semicolon termination. For example,
-```cpp
-int add(int x, int y);
-```
-
-For an example of the utility of forward declarations, see the below script where the compiler throws an error because the add() function is called before it is defined.
-```cpp
-#include <iostream>
-
-int main()
+# 2.7 - [Programs with Multiple Files](https://www.learncpp.com/cpp-tutorial/programs-with-multiple-code-files/)
+To build multiple files in VS Code, add the files to tasks.json after the -g flag. For example, to build add.cpp in addition to the active file add it after the -g flag as below
+```json
 {
-    std::cout << "The sum of 3 and 4 is: " << add(3, 4) << "\n";
-    return 0;
-}
-
-int add(int x, int y)
-{
-    return x + y;
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "C/C++: g++ build active file",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-g",
+				"${file}",
+				"${fileDirname}/add.cpp",
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
 }
 ```
-But if we add the forward declaration, we can remove the compiler error.
-```cpp
-#include <iostream>
+The above lets us use the add function from add.cpp in main.cpp.
 
-int add(int x, int y); // forward declaration of add() using a function prototype
+# 2.8 - [Naming Collisions and an Introduction to Namespaces](https://www.learncpp.com/cpp-tutorial/2-9-naming-collisions-and-an-introduction-to-namespaces/)
 
-int main()
-{
-    std::cout << "The sum of 3 and 4 is: " << add(3, 4) << "\n";
-    return 0;
-}
+Naming collisions often occur in two cases:
+1. Two or more definitions for a function (or global variable) are introduced into separate files that are compiled into the same program. This will result in a linker error as shown below.
+    a.cpp:
+    ```cpp
+    #include <iostream>
 
-int add(int x, int y)
-{
-    return x + y;
-}
-```
+    void myFcn(int x)
+    {
+        std::cout << x;
+    }
+    ```
+    main.cpp:
+    ```cpp
+    #include <iostream>
 
-Note: parameter names are not required in a function prototype, but their inclusion is best practice. The following works, but IS NOT best practice.
-```cpp
-int add(int, int); // valid function prototype, but not best practice without parameter names
-```
-## Declarations vs. Definitions
-A **definition** acutally implements (for functions or types) or instantiates (for variables) the identifier. For example,
-```cpp
-int add(int x, int y) // implements function add()
-{
-    int z{ x + y}; // instantiates variable z
-    return z;
-}
-```
-A definition is needed to satisfy the *linker*.
-Note: functions that share an identifier but have different parameters are considered to be different functions.
+    void myFcn(int x)
+    {
+        std::cout << x;
+    }
 
-A **declaration** is a statement that tells the *compiler* about the existence of an identifier and its type information. For example,
-```cpp
-int add(int x, inty);   // tells the compiler the add fnxn exists, takes two int params, and returns an int
-int x;  // tells the compiler about an integer variable named x
-```
-A declaration is needed to satisfy the *compiler*.
+    int main()
+    {
+        return 0;
+    }
+    ```
+2. Two or more definitions for a function (or global variable) are introduced in the same file (often via an #include). This will result in a compiler error.
 
-All definitions are declarations, but not all declarations are definitions. An example of tha declaration that is not a definition is the function prototype - it satisfies the compiler but not the linker. Declarations that aren't definitions are called **pure declarations**. 
+## What is a namespace?
+A **namespace** is a region that allows you to declare names inside of it for the purpose of disambiguation. The namespace provides a scope (called **namespace scope**) to the names declared inside of it which means that names inside the namespace won't be mistaken for identical names in other scopes.
 
-# 2.7 - [Programs With Multiple Code Files](https://www.learncpp.com/cpp-tutorial/programs-with-multiple-code-files/)
-In VS Code and g++, you need 
+**Key insight:** a name declared in a namespace won't be mistaken for an identical name declared in another scope.
+
+For example, if you put all your identifiers in a namespace called *math*, then the math functions won't collide with other identically named functions outside the math namespace.
+
+## The Global Namespace
+In C++, any name that is not defined inside a class, function, or a namespace is considered to be part of the **global namespace** (a.k.a. **global scope**).
+
+**Key insight:** when you use an identifier that is defined inside a namespace, you have to tell the compiler that the identifier lives inside the namespace.
+
+## Explicit namespace qualifier std::
+:: is caled the **scope resolution operator**. The identifier to the left of the :: indicates the namespace that the name to the right of the :: is contained within. If no identifier is provided to the left of ::, the global namespace is assumed.
+
+**Best practice: use explicit namespace prefixes to access identifiers in a namespace.**
