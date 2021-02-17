@@ -200,3 +200,85 @@ int main()
 **Key insight**: Names used for function params or variables declared in a function body are only visible within the function that declares them. This means local variables within a function can be named without regard for the names of variables in other functions. This helps keep functions independent.
 
 **Best practice: Define your local variables as close to first use as reasonably possible.**
+
+# 2.5 - [Why Functions Are Useful and How to Use Them Effectively](https://www.learncpp.com/cpp-tutorial/why-functions-are-useful-and-how-to-use-them-effectively/)
+Benefits of functions:
+- Organization
+- Reusability
+- Testing
+- Extensibility
+- Abstraction
+
+Some guidance to effectively use functions:
+- Statements that appear more than once in a program should generally be made into a function.
+- Code that has a well-defined set of inputs and outputs is a good candidate for a function, especially if it's complicated.
+- A function should generally perform one and only one task.
+- When a function becomes too long or hard to understand, it can be split into multiple sub-functions. This is called **refactoring**.
+
+# 2.6 - [Forward Declarations and Definitions](https://www.learncpp.com/cpp-tutorial/forward-declarations/)
+
+A **forward declaration** allows us to tell the compiler about the existence of an identifier before actually defining the identifier. We write a forward declaration for a function using a declaration statement called a **function prototype**. The functino prototype consists ofthe function's return type, name, parameters, NO function body, and semicolon termination. For example,
+```cpp
+int add(int x, int y);
+```
+
+For an example of the utility of forward declarations, see the below script where the compiler throws an error because the add() function is called before it is defined.
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << "The sum of 3 and 4 is: " << add(3, 4) << "\n";
+    return 0;
+}
+
+int add(int x, int y)
+{
+    return x + y;
+}
+```
+But if we add the forward declaration, we can remove the compiler error.
+```cpp
+#include <iostream>
+
+int add(int x, int y); // forward declaration of add() using a function prototype
+
+int main()
+{
+    std::cout << "The sum of 3 and 4 is: " << add(3, 4) << "\n";
+    return 0;
+}
+
+int add(int x, int y)
+{
+    return x + y;
+}
+```
+
+Note: parameter names are not required in a function prototype, but their inclusion is best practice. The following works, but IS NOT best practice.
+```cpp
+int add(int, int); // valid function prototype, but not best practice without parameter names
+```
+## Declarations vs. Definitions
+A **definition** acutally implements (for functions or types) or instantiates (for variables) the identifier. For example,
+```cpp
+int add(int x, int y) // implements function add()
+{
+    int z{ x + y}; // instantiates variable z
+    return z;
+}
+```
+A definition is needed to satisfy the *linker*.
+Note: functions that share an identifier but have different parameters are considered to be different functions.
+
+A **declaration** is a statement that tells the *compiler* about the existence of an identifier and its type information. For example,
+```cpp
+int add(int x, inty);   // tells the compiler the add fnxn exists, takes two int params, and returns an int
+int x;  // tells the compiler about an integer variable named x
+```
+A declaration is needed to satisfy the *compiler*.
+
+All definitions are declarations, but not all declarations are definitions. An example of tha declaration that is not a definition is the function prototype - it satisfies the compiler but not the linker. Declarations that aren't definitions are called **pure declarations**. 
+
+# 2.7 - [Programs With Multiple Code Files](https://www.learncpp.com/cpp-tutorial/programs-with-multiple-code-files/)
+In VS Code and g++, you need 
