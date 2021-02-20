@@ -279,3 +279,192 @@ In C++, any name that is not defined inside a class, function, or a namespace is
 :: is caled the **scope resolution operator**. The identifier to the left of the :: indicates the namespace that the name to the right of the :: is contained within. If no identifier is provided to the left of ::, the global namespace is assumed.
 
 **Best practice: use explicit namespace prefixes to access identifiers in a namespace.**
+
+## Using namespace std (and why to avoid it)
+A **using directive** tells the compiler to check a specified namespace when resolving an identifier without a namespace prefix.
+
+**Warning:** avoid using directives (such as *using namespace std*) at the top of the program. They violate the original intention of namespaces: to avoid naming conflicts in current and future code by adding the namespace.
+
+# 2.9 - [Introduction to the Preprocessor](https://www.learncpp.com/cpp-tutorial/introduction-to-the-preprocessor/)
+## Translation and the Preprocessor
+Prior to compilation, the code file goes through a phase called **translation**. A code file with translations applied to it is called a **translation unit**. The preprocessor is one sub-phase in the translation phase. 
+
+The **preprocessor** manipulates the text in each code file. **Preprocessor directives** (a.k.a. directives) are instructions that start with a *#* symbol and end with a newline (NOT a semicolon). The preprocessor does not understand C++ syntax -- directives have their own syntax.
+
+## Includes
+When the preprocessor sees the *#include* directive, it replaces it with the contents of the included file.
+
+For example, 
+```cpp
+#include <iostream>
+```
+replaces *#include* with the contents of the file named "iostream".
+
+## Macro Defines
+The *#define* directive is a **macro** that defines how input text is converted to output text in the preprocessor. There are two basic types of macros: *object-like macros* and *function-like macros*. Don't use function-like macros because they're considered dangerous and their purpose can be replicated simply with a normal function.
+
+Within the category of object-like macros, there are two types: those with substitution text and those without.
+```cpp
+#define identifier
+#define identifier substitution_text
+```
+
+### Object-like macros with substitution text
+Note: this feature was once useful as a cheaper alternative to constant variables, but compilers are better now and the language has grown. **Avoid using object-like macros with substitution text in new code!!!** They should only be seen in legacy code. 
+
+In this macro, the identifier should be in all caps with underscores used to represent spaces.
+
+What do they do? Replace any occurence of the identifier with the substitution text. For example,
+```cpp
+#include <iostream>
+
+#define MY_NAME "Alex"
+
+int main()
+{
+    std::cout <<"My name is: " << MY_NAME;
+
+    return 0;
+}
+```
+And the preprocessor converts the above into the below:
+```cpp
+int main()
+{
+    std::cout <<"My name is: " << "Alex";
+
+    return 0;
+}
+```
+
+### Object-like macros without substitution text
+These macros replace the identifier with NOTHING! For example,
+```cpp
+#define USE_YEN
+```
+These are acceptable to use, and though they seem useless, they're not. More on their uses in future lessons.
+
+## Conditional Compilation
+The ```#ifdef``` preprocessor directive allows the preprocessor whether the identifier has been ```#define```d. If yes, then the code between the ```#ifdef``` and matching ```#endif``` is compiled. If not, the code is ignored. The opposite of ```#ifdef``` is ```#ifndef```. Alternatively, you might see ```#if defined(IDENTIFIER)``` or ```#if !defined(IDENTIFIER)```. 
+For example,
+```cpp
+#include <iostream>
+
+#define PRINT_JOE
+
+int main()
+{
+#ifdef PRINT_JOE
+    std::cout << "Joe\n";
+#endif
+
+#ifdef PRINT_BOB
+    std::cout << "Bob\n";
+#endif
+
+#ifndef PRINT_SALLY
+    std::cout << "Not Sally\n";
+#endif
+
+    return 0;
+}
+```
+The following lines will be compiled in the above
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << "Joe\n";
+    std::cout << "Not Sally\n";
+
+    return 0;
+}
+```
+
+## #if 0
+This is a convenient way to "comment out" code across multiple lines. For example,
+
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << "Joe\n";
+
+#if 0
+    std::cout << "Bob\n";
+    std::cout << "Steve\n";
+#endif
+
+    return 0;
+}
+```
+
+## Object-like macros don't affect other preprocessor directives
+Macros only substitute text in normal code. Other preprocessor directives are ignored. For example, in the below code
+```cpp
+#define PRINT_JOE
+#ifdef PRINT_JOE
+//...
+```
+The second ```PRINT_JOE``` is not replaced with nothing.
+
+The preprocessor output contains no directives at all -- they are resolved and stripped out before compilation. The compiler won't know what to do with them.
+
+## The Scope of Defines
+Preprocessor directives are only valid from the point of definition to the end of the file in which they are defined. The preprocessor doesn't understand concepts like functions, so the scope is not limited to the function if defined within a function. For example below,
+```cpp
+#include <iostream>
+
+void foo()
+{
+#define MY_NAME "Alonzo"
+}
+
+int main()
+{
+    std::cout << "My name is: "<< MY_NAME;
+
+    return 0;
+}
+```
+behaves just like 
+```cpp
+#include <iostream>
+#define MY_NAME "Alonzo"
+
+void foo()
+{
+// ...
+}
+
+int main()
+{
+    std::cout << "My name is: "<< MY_NAME;
+
+    return 0;
+}
+```
+
+Additionally, directives defined in one code file do not have impact on other code files.
+
+# 2.10 - [Header Files](https://www.learncpp.com/cpp-tutorial/header-files/)
+The primary purpose of a header file is to propagate declarations to code files. This is more convenient than tediously forward declaring everything that you want to use that is defined in a different file.
+
+**Key insight:** header files allow us to put declarations in one location and then import them wherever we need them. This saves us a lot of typing.
+
+**Key insight:** when you ```#include``` a file, the content of the included file is inserted at the point of inclusion. This provides a useful way to pull in declarations from another file.
+
+**Best practice:** header files should generally not contain function or variable definitions, only declarations (so as not to violate the one definition rule). An exception is made for symbolic constants.
+
+**Best practice:** use a .h suffix when naming your header files. If a header file is paired with a code file (e.g. add.h and add.cpp), they should both have the same base name (add).
+
+**Best practice:** when writing a source file, include the corresponding header (if one exists), even if you don't need it yet. If the header includes other library headers for function declarations, you probably need it for source files too.
+
+## Troubleshooting
+If you get a compiler error, check that the name and directory of the header is right. 
+
+If you get a linker error, make sure that you've added the .cpp file to your project so all function definitions are included in your program.
+
+## Angled Brackets vs Double Quotes
