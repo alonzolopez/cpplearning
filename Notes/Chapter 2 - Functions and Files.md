@@ -234,6 +234,12 @@ To build multiple files in VS Code, add the files to tasks.json after the -g fla
 ```
 The above lets us use the add function from add.cpp in main.cpp.
 
+Or if compiling in the terminal,
+```
+g++ main.cpp add.cpp -o main
+```
+where `main.cpp` and `add.cpp` are the names of the code files to compile, and `main` is the name of the output file.
+
 # 2.8 - [Naming Collisions and an Introduction to Namespaces](https://www.learncpp.com/cpp-tutorial/2-9-naming-collisions-and-an-introduction-to-namespaces/)
 
 Naming collisions often occur in two cases:
@@ -468,3 +474,228 @@ If you get a compiler error, check that the name and directory of the header is 
 If you get a linker error, make sure that you've added the .cpp file to your project so all function definitions are included in your program.
 
 ## Angled Brackets vs Double Quotes
+**Rule:** use double quotes to include header files that you've written or are expected to be found in the current directory. Use angled brackets to include headers that come with your compiler, OS, or third-party libraries that you've installed elsewhere on your system.
+
+When using angled brackets, the compiler will search for the header only in the directories specified by the ```include directories```. 
+
+**Best practice:** when including a header file from the standard library, use the no extension version (without the .h) if it exists. User-defined headers should use a .h extension.
+
+## Including header files in other directories
+You can but SHOULD NOT do the following
+```cpp
+#include "headers/myHeader.h"
+#include "../moreHeaders/myOtherHeader.h"
+```
+
+Reflecting your directory structure in your code means you'll have to update it everywhere if you ever change the structure. 
+
+A better way to tell your compiler where your header files are is to set an *include path* or *search directory*. For g++, include the following 
+```
+g++ -o main -I/source/includes main.cpp
+```
+
+## Headers may include other headers
+When code `#include`s the first header file, you also get any other header files that the first header `#include`s. These are called *transitive includes*, but you shouldn't rely on them. 
+
+**Best practice:** Each file should explicitly `#include` all of the header files it needs to compile. Do not rely on headers included transitively from other headers.
+
+## The `#include` order of header files
+To help catch erros, follow the below best practice for `#include` directive ordering.
+
+**Best practice:** order your includes as follows:
+1. user-defined headers first
+2. 3rd party library headers
+3. standard library headers
+
+## Header file best practices
+* Always include header guards
+* Don't define variables and functions in header files (global constants are an exception)
+* Give header files the same name as the source file they're associated with (e.g. add.h for add.cpp)
+* Design tip: Each header file should have a specific job and be as independent as possible. For example, keep functionality A in A.h and functionality B in B.h, so if you only care about A later then you'll only have to include A.h
+* Be mindful of which headers you need to explicitly include for the functionality that you are using in your code files
+* Every header you write should compile on its own (it should `#include` every dependency it needs)
+* Only `#include` what you need
+* Do not `#include` .cpp files
+
+# 2.11 - [Header Guards](https://www.learncpp.com/cpp-tutorial/header-guards/)
+Programs that define a variable or function more than once will cause a compiler error. This is easy enough to catch in a simple code file, but gets trickier when we start including files. For example, see the next three files:
+
+square.h:
+```cpp
+int getSquareSides()
+{
+    return 4;
+}
+```
+geometry.h:
+```cpp
+#include "square.h"
+```
+main.cpp:
+```cpp
+#include "square.h"
+#include "geometry.h"
+
+int main()
+{
+    return 0;
+}
+```
+With the above, main.cpp ends up looking like this once the preprocessor is done with it:
+```cpp
+int getSquareSides()
+{
+    return 4;
+}
+
+int getSquareSides()
+{
+    return 4;
+}
+
+int main()
+{
+    return 0;
+}
+```
+It has two definitions of getSquareSides(), and thus will not compile. The two definitions result from the `#include` directives in main including "square.h" directly and then again via "geometry.h". To avoid this, we use header guards.
+
+## Header Guards
+**Header guards** or **include guards** are conditional compilations in the form below
+```cpp
+#ifndef UNIQUE_NAME_HERE
+#define UNIQUE_NAME_HERE
+
+// declarations here
+
+#endif
+```
+If `UNIQUE_NAME_HERE` is not defined (i.e. this is the first time we're including this header), then the if statement will be true and it will include define `UNIQUE_NAME_HERE` and proceed with the declarations. Otherwise if `UNIQUE_NAME_HERE` is defined, the if statement will evaluate to false and the code will not be included again.
+
+## Updating the previous example with header guards
+square.h:
+```cpp
+#ifndef SQUARE_H
+#define SQUARE_H
+
+int getSquareSides()
+{
+    return 4;
+}
+
+#endif
+```
+geometry.h:
+```cpp
+#ifndef GEOMETRY_H
+#define GEOMETRY_h
+
+#include "square.h"
+
+#endif
+```
+main.cpp:
+```cpp
+#include "square.h"
+#include "geometry.h"
+
+int main()
+{
+    return 0;
+}
+```
+
+The preprocessor then outputs main.cpp as
+```cpp
+int getSquareSides()
+{
+    return 4;
+}
+
+int main()
+{
+    return 0;
+}
+```
+
+## Header guards do not prevent a header file from being included once into different project files
+So don't include definitions in header files. If you include the header in two totally different files in the same project, the function will not only be declared twice (which is okay) but will also be defined twice (which is not okay). For example,
+
+square.h:
+```cpp
+#ifndef SQUARE_H
+#define SQUARE_H
+
+int getSquareSides()
+{
+    return 4;
+}
+
+int getSquarePerimeter(int sideLength);
+
+#endif
+```
+
+square.cpp:
+```cpp
+#include "square.h"
+
+int getSquarePerimeter(int sideLength)
+{
+    return sideLength * getSquareSides();
+}
+```
+
+main.cpp:
+```cpp
+#include "square.h"
+#include <iostream>
+
+int main()
+{
+    std::cout << "a square has " << getSquareSides() << " sides\n";
+    std::cout << "a square of length 5 has perimeter length " << getSquarePerimeter(5) << "\n";
+
+    return 0;
+}
+```
+
+Note that square.h contains a definition for `getSquareSides()`. Because square.h is included in `square.cpp` for the first time, `SQUARE_H` is defined and has its scope through the compilation of square.cpp. Then when main.cpp goes to compile, `SQUARE_H` is no longer defined and square.h is included again along with the definition for `getSquareSides()`, which is a double definition. The linker will complain about having multiple definitions for identifier `getSquareSides`.
+
+To avoid this, put the function definition in the .cpp files so the header just contains the forward declaration.
+
+Even if you avoid definining functions in header files, there are many cases where it's necessary to put non-function definitions in header files, so it's best practice to use header guards.
+
+## #pragma once
+The *#pragma* directive is a simpler alternative to header guards
+
+```cpp
+#pragma once
+```
+
+It's shorter and less error-prone. However, it's not part of the official C++ language, and not compilers support it, though most do. For compatibility purposes, stick to the traditional header guards.
+
+## Summary of header guards
+* they're designed to make sure the contents of a given header file are not copied more than once into any single file.
+* Duplicate *declarations* are fine, but duplicate *definitions* are NOT. Note that even with only declarations in your header file (and no definitions), best practice is still to use header guards.
+* Header guards do not prevent the contents of the header file from being copied (once) into separate project files.
+
+## Quiz - Header Guards
+Add header guards into this header file:
+
+add.h:
+```cpp
+int add(int x, int y);
+```
+
+solution:
+```cpp
+#ifndef ADD_H
+#defin ADD_H
+
+int add(int x, int y);
+
+#endif
+```
+
+# 2.12 - [How to design your first programs](https://www.learncpp.com/cpp-tutorial/how-to-design-your-first-programs/)
