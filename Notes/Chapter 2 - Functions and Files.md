@@ -351,7 +351,7 @@ These macros replace the identifier with NOTHING! For example,
 These are acceptable to use, and though they seem useless, they're not. More on their uses in future lessons.
 
 ## Conditional Compilation
-The ```#ifdef``` preprocessor directive allows the preprocessor whether the identifier has been ```#define```d. If yes, then the code between the ```#ifdef``` and matching ```#endif``` is compiled. If not, the code is ignored. The opposite of ```#ifdef``` is ```#ifndef```. Alternatively, you might see ```#if defined(IDENTIFIER)``` or ```#if !defined(IDENTIFIER)```. 
+The ```#ifdef``` preprocessor directive allows the preprocessor to check whether the identifier has been ```#define```d. If yes, then the code between the ```#ifdef``` and matching ```#endif``` is compiled. If not, the code is ignored. The opposite of ```#ifdef``` is ```#ifndef```. Alternatively, you might see ```#if defined(IDENTIFIER)``` or ```#if !defined(IDENTIFIER)```. 
 For example,
 ```cpp
 #include <iostream>
@@ -500,7 +500,7 @@ When code `#include`s the first header file, you also get any other header files
 **Best practice:** Each file should explicitly `#include` all of the header files it needs to compile. Do not rely on headers included transitively from other headers.
 
 ## The `#include` order of header files
-To help catch erros, follow the below best practice for `#include` directive ordering.
+To help catch errors, follow the below best practice for `#include` directive ordering.
 
 **Best practice:** order your includes as follows:
 1. user-defined headers first
@@ -691,7 +691,7 @@ int add(int x, int y);
 solution:
 ```cpp
 #ifndef ADD_H
-#defin ADD_H
+#define ADD_H
 
 int add(int x, int y);
 

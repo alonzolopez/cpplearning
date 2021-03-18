@@ -289,7 +289,7 @@ Recommendations for basic formatting:
 *"Hello world!"* and *5* are literals (a.k.a. literal constants), fixed values inserted into the source code. Literals have both a value and a type.
 
 ## Operators
-The contruct called the operator denotes the specific operation to be performed. It is common nomenclature to append the operator's symbol to the end of the word operator. For example, for the plus operator we write operator+.
+The contruct called the operator denotes the specific operation to be performed. It is common nomenclature to append the operator's symbol to the end of the word operator. For example, for the plus operator we write *operator+*.
 
 The number of operands that an operator takes as input is called the operator's *arity*. Operators in C++ come in three different arities:
 * **Unary** operators act on one operand. For example, *operator-* takes literal operand *5* and flips its sign to produce the new output value *-5*.
