@@ -201,6 +201,44 @@ int main()
 
 **Best practice: Define your local variables as close to first use as reasonably possible.**
 
+# 2.6 - [Forward Declarations and Definitions](https://www.learncpp.com/cpp-tutorial/forward-declarations/)
+A **forward declaration** allows us to tell the compiler about the existence of an identifier *before* defining the identifier (e.g. a function). 
+
+To write a forward declaration for a function, we use a declaration statement called a **function prototype**. The function prototype consists of the function's return type, name, parameters but *no function body* (the curly braces and everything in between them), terminated with a semicolon. For example,
+```cpp
+int add(int x, int y); // includes return type, name, parameters, and semicolon.
+int add(int, int); // alternative valid prototype, but not preferred
+```
+This way, when the compiler encounters the call to add() in main, it'll understand that we're making a function call and can check to ensure that we're calling the function correctly even it it doesn't yet know how or where the function is defined.
+
+**Best practice:** when defining function prototypes, keep the parameter names. You can easily create forward declarations by using copy/paste on your function declaration. Don't forget the semicolon on the end.
+
+## Declarations vs Definitions
+A **definition** actually implements (for functions or types) or instantiates (for variables) the identifier. Here are some examples of definitions:
+```cpp
+int add(int x, int y) // implements function add()
+{
+    int z{x _ y}; 
+    return z;
+}
+```
+A definition is needed to satisfy the *linker*. If you use an identifier without providing a definition, the linker will error.
+
+Obey the **one definition rule** and its three parts:
+1. Within a given file, a function, object, type, or template can only have one definition. Violating this will cause a compiler error.
+2. Within a given program, an object or normal function can only have one definition. Violating this will cause a linker error.
+3. Types, templates, inline functions, and variables are allowed to have identical definitions in different files. Violating this will cause undefined behavior.
+
+**Note:** functions that share an identifier but have different parameters are considered to be distinct functions. This is function overloading (coming in Chapter 10).
+
+A **declaration** is a statement that tells the *compiler* about the existence of an identifier and its type information. For example,
+```cpp
+int add(int x, int y); // tells the compiler about a fnxn named "add" that takes two int params
+int x; // tells the compiler about an integer variable named x
+```
+
+A declaration is all that is needed to satisfy the compiler. A definition is a declaration, but a declaration is not a definition. For example, the function prototype is a declaration but not a definition; it's a **pure declaration** that satisfies the compiler but not the linker.
+
 # 2.7 - [Programs with Multiple Files](https://www.learncpp.com/cpp-tutorial/programs-with-multiple-code-files/)
 To build multiple files in VS Code, add the files to tasks.json after the -g flag. For example, to build add.cpp in addition to the active file add it after the -g flag as below
 ```json
@@ -699,3 +737,23 @@ int add(int x, int y);
 ```
 
 # 2.12 - [How to design your first programs](https://www.learncpp.com/cpp-tutorial/how-to-design-your-first-programs/)
+
+## Design
+Design your program *before you start coding*.
+
+Basic design steps:
+1. Define your goal. This is usually a user-facing outcome.
+2. Define requirements. These are constraints that the solution needs to abide by.
+3. Define your tools, targets, and backup plan. For more complex projects, this means defining target architecture and/or OS for the program to run on, tools used, team, testing/feedback/release strategy, and code backup.
+4. Break hard problems down into easy problems. Use a top-down approach (i.e. start with big problems and break them down until you end up with small problems in a hierarchy which yields the structure of your program) or bottom-up (not sure how this maps).
+5. Figure out the sequence of events.
+
+## Implementation
+Implementation steps:
+1. Outline your main function. 
+2. Implement each function. Don't implement your entire program in one go. Work on it in steps, testing each step along the way before proceeding.
+3. Final testing. Test the whole program. This step may take a while and many tries...
+
+# 2.x - [Chapter 2 Summary and Quiz](https://www.learncpp.com/cpp-tutorial/chapter-2-summary-and-quiz/)
+
+See [main.cpp](../2-projects/final_quiz/main.cpp) and [io.cpp](../2-projects/final_quiz/io.cpp) and [io.h](../2-projects/final_quiz/io.h) for my solution.
