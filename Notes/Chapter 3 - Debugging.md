@@ -134,3 +134,20 @@ To view the value of variables as the program executes, either hover over the va
 You can also inspect the value of local variables inside a function while debugging by looking under **Variables** > **Locals** in the left hand side.
 
 # [3.9 - Using an Integrated Debugger: The Call Stack](https://www.learncpp.com/cpp-tutorial/using-an-integrated-debugger-the-call-stack/)
+The call stack is a list of all the active functions that have been called to get to the current point of execution. The call stack includes an entry for each function called as well as which line of code will be returned to when the function returns. Whenever a new function is called, that function is added to the top of the call stack. When the current function returns to the caller, it is removed from the top of the call stack and control returns to the function just below it.
+
+# [3.10 - Finding Issues Before They Become Problems](https://www.learncpp.com/cpp-tutorial/finding-issues-before-they-become-problems/)
+
+Don't make errors.
+
+Don't write functions that are too long. A one-page-long function is way too long.
+
+Practice defensive programming.
+
+If you do make errors, find them quickly before you get too far in your coding.
+
+Write test functions, or practice **unit testing**.
+
+Enforce constraints (more on this later with [7.17 - Assert and static_assert](https://www.learncpp.com/cpp-tutorial/assert-and-static_assert/)).
+
+# [3.x - Chapter 3 Summary and Quiz](https://www.learncpp.com/cpp-tutorial/chapter-3-summary-and-quiz/)
