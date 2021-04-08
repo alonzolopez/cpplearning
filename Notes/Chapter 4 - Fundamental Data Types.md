@@ -60,3 +60,36 @@ int getValue() // empty function parameters is an implicit void
 
 ## Other Uses of Void
 There is a third, more advanced use that will be covered later: [9.20 - Void Pointers](https://www.learncpp.com/cpp-tutorial/void-pointers/).
+
+
+# [4.3 - Object Sizes and the sizeof Operator](https://www.learncpp.com/cpp-tutorial/object-sizes-and-the-sizeof-operator/)
+A single object of variable name *x* may occupy multiple consecutive memory addresses depending on its type.
+
+**Key insight:** focus on writing maintainable code, and optimize only when and where the difference will be substantive.
+
+## Fundamental Data Type Sizes
+C++ only guarantees that each fundamental data type is a *minimum* size; the actual size of the variables is compiler and/or computer architecture-dependent. 
+
+**Best practice:** for maximum compatibility, don't assume that the variables are longer than the specified minimum size.
+
+## The sizeof operator
+The **sizeof** operator is a unary operator that takes either a type or variable and returns its size in bytes. For example,
+
+```cpp
+#include <iostream>
+ 
+int main()
+{
+    std::cout << "bool:\t\t" << sizeof(bool) << " bytes\n";
+    std::cout << "char:\t\t" << sizeof(char) << " bytes\n";
+    std::cout << "long double:\t" << sizeof(long double) << " bytes\n";
+    int x = 3;
+    std::cout << "int x:\t\t" << sizeof(x) << " bytes\n";
+ 
+    return 0;
+}
+```
+
+**As an aside...** CPUs are often optimized to process data of a certain size (e.g. 32 bits), and types that match that size may be processed quicker. On such a machine, a 32-bit *int* could be faster than a 16-bit *short* or an 8-bit *char*.
+
+# [4.4 - Signed Integers](https://www.learncpp.com/cpp-tutorial/signed-integers/)
