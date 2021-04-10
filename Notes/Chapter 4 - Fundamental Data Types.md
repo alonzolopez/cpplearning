@@ -163,7 +163,7 @@ Avoid using unsigned numbers except in some cases or when unavoidable. It can le
 
 Sometimes you still need unsigned numbers, and it's more common in embedded systems (e.g. Arduinos).
 
-# [Fixed-width Integers and size_t](https://www.learncpp.com/cpp-tutorial/fixed-width-integers-and-size-t/)
+# [4.6 - Fixed-width Integers and size_t](https://www.learncpp.com/cpp-tutorial/fixed-width-integers-and-size-t/)
 C++ only guarantees that integers have a minimum size, meaning that ranges are not fixed. The rationale for this goes back to C - computers were slow and perormance was of utmost concern, so it was left to compiler implementors to pick the best size for each type on the target computer architecture. But this sucks by modern standards.
 
 To help with cross-compatibility and headaches, C99 defined a set of **fixed-width integers** that are guaranteed to have the same size on any architecture:
@@ -212,3 +212,161 @@ Avoid the following when possible:
 
 # [4.7 - Introduction to Scientific Notation](https://www.learncpp.com/cpp-tutorial/introduction-to-scientific-notation/)
 
+When converting numbers to scientific notation, don't trim trailing zeros in the significand because they indicate the accuracy of the number - they are significant digits.
+
+# [4.8 - Floating Point Numbers](https://www.learncpp.com/cpp-tutorial/floating-point-numbers/)
+The *floating*  in *floating point* refers to the fact that the decimal point can float; i.e. it can support a variable number of digits before and after the decimal point.
+
+There are 3 different floating point types: **float, long, double**
+![floating point types](images/floating-point-types.png)
+
+Here is what the declarations look like
+```cpp
+float fValue;
+double dValue;
+long double ldValue;
+```
+
+Here are some examples of definitions using literals
+```cpp
+int x{5}; // 5 means integer
+double y{5.0}; // 5.0 is a floating point literal (no suffix means double type by default)
+float z{5.0f}; // 5.0 is a floating point literal, f suffix means float type
+```
+
+**Note:** by default, floating point literals default to double type. Use an f suffix to indicate float type.
+
+**Best practice:** make sure your literals match the type of variable they're being assigned to. Otherwise an unnecessary conversion will result, and possibly a loss of precision.
+
+**Warning:** don't use integer literals where floating point literals should be used, including when initializing or assigning values to floating point objects, foing floating point arithmetic, and calling functions that expect floating point values.
+
+## Printing Floating Point Numbers
+
+The program:
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << 5.0 << '\n';
+    std::cout << 6.7f << '\n';
+    std::cout << 9876543.21 << '\n';
+}
+```
+
+will print
+```
+5
+6.7
+9.87654e+06
+```
+
+std::cout will not print the fractional part of a number if it's zero. std::cout defaults to 6 digits. We can set the precision of std::cout using an **output manipulator** function named `std::set_precision()` from the `<iomanip>` header.
+```cpp
+#include <iostream>
+#include <iomanip>
+
+int main()
+{
+    std::cout << std::setprecision(16); // show 16 digits of precision
+    std::cout << 3.3333333333333333333f << '\n'; // float
+    std::cout << 3.3333333333333333333 << '\n'; // double
+}
+```
+
+Outputs:
+
+3.333333253860474
+3.333333333333334
+
+Setting the precision of std::cout lower than required will result in a rounding error. For example,
+```cpp
+#include <iostream>
+#include <iomanip>
+
+int main()
+{
+    float f {123456789.0f};
+    std::cout << std::setprecision(9);
+    std::cout << f << '\n';
+    return 0;
+}
+
+```
+outputs:
+
+123456792
+
+
+## Floating Point Range
+![floating point range](images/floating-point-range.png)
+
+## Floating Point Precision
+The **precision** of a floating point number defines how many *significant digits* it can represent without information loss.
+
+**Best practice:** favor a double over a float unless space is at a premium, as the lack of precision in a float will cause inaccuracies.
+
+## Rounding Errors Make Floating Point Comparisons Tricky
+Non-obvious differences between decimals (how we think) and binary numbers (how these numbers are stored) make comparisons tricky and rounding errors common. for example, the number 0.1 is stored as the infinite sequence 0.00011001100110011..., so when we set it to a float we get precision problems as rounding errors. For example,
+
+```cpp
+#include <iostream>
+#include <iomanip>
+
+int main()
+{
+    double d{0.1};
+    std::cout << d << '\n';
+    std::cout << std::setprecision(17);
+    std::cout << d << '\n';
+
+    return 0;
+}
+```
+
+this outputs:
+```
+0.1
+0.10000000000000001
+```
+It's not *exactly* 0.1.
+
+Another interesting example: adding 0.1 ten times does not get exactly 1.0
+```cpp
+#include <iomanip> // for std::setprecision()
+#include <iostream>
+ 
+int main()
+{
+    std::cout << std::setprecision(17);
+ 
+    double d1{ 1.0 };
+    std::cout << d1 << '\n';
+	
+    double d2{ 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 + 0.1 }; // should equal 1.0
+    std::cout << d2 << '\n';
+}
+```
+
+```
+1
+0.99999999999999989
+```
+
+Note that addition or multiplication tend to make rounding errors grow.
+
+**Key insight:** rounding errors happen when a number can't be stored precisely. This happens all the time, therefore this is the rule, not the exception. Never assume floating point numbers are exact, and never use floating point numbers for financial or currency data!!!
+
+## NaN and Inf
+**Inf** := Infinity
+
+**NaN** := Not a Number
+
+**IND** := Indeterminate
+
+## Section Conclusion
+1. Floating point numbers are useful for storing very large or very small numbers.
+
+2. Floating point numbers often have small rounding errors, even when the number has fewer significant digits than the precision. Many times these errors go unnoticed because they are small, and because the numbers are truncated for output. However, performing comparisons of these numbers will may not give the expected results, and adding/multiplying will exacerbate these errors.
+
+# [4.9 - Boolean Values](https://www.learncpp.com/cpp-tutorial/boolean-values/)
