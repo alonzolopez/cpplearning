@@ -370,3 +370,204 @@ Note that addition or multiplication tend to make rounding errors grow.
 2. Floating point numbers often have small rounding errors, even when the number has fewer significant digits than the precision. Many times these errors go unnoticed because they are small, and because the numbers are truncated for output. However, performing comparisons of these numbers will may not give the expected results, and adding/multiplying will exacerbate these errors.
 
 # [4.9 - Boolean Values](https://www.learncpp.com/cpp-tutorial/boolean-values/)
+## Boolean Variables
+Can be initialized in the following ways
+```cpp
+bool b; // declaration
+bool b1 { true };
+bool b2 { false};
+b1 = false;
+bool b3 {}; // default initialize to false, or zero
+
+bool b4{ !true }; // initialized with the value false
+bool b5{ !false }; // initialized with the value true
+```
+
+Booleans are stored as 0 (false) or 1 (true). Because they are stored as 0/1, they are an integral type.
+
+## Printing Boolean Types
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << true << '\n';
+    std::cout << !true << '\n';
+
+    bool b{false};
+    std::cout << b << '\n';
+    std::cout << !b << '\n';
+
+    return 0;
+}
+```
+
+outputs:
+```
+1
+0
+0
+1
+```
+
+To have std::cout print "true" or "false", use *std::boolalpha* to turn on the feature and *std::noboolalpha* to turn it off.
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << true << '\n';
+    std::cout << false << '\n';
+
+    std::cout << std::boolalpha;
+
+    std::cout << true << '\n';
+    std::cout << false << '\n';
+
+    std::cout << std::noboolalpha; // turn it off to go back to printing 0/1
+
+    std::cout << true << '\n';
+    std::cout << false << '\n';
+
+    return 0;
+}
+```
+
+output:
+```
+1
+0
+true
+false
+1
+0
+```
+
+## Integer to Boolean Conversion
+You can't do list initialization of a boolean with an integer, but you can do direct and copy list initialization, and a narrowing conversion will result. For example,
+```cpp
+#include <iostream>
+
+int main()
+{
+    bool b{4}; // ERROR: narrowing conversions disallowed in list initialization
+    
+    // copy initialization allows the implicit conversion from int to bool
+    bool b1 = 4; // ALLOWED, copy initialization, the value is true
+    bool b2 = 0; // ALLOWED, copy initialization, the value is false
+
+    return 0;
+}
+```
+
+## Inputting Boolean Values
+By default, when inputting boolean values via std::cin, you have to use 0/1. If you'd like to input them via std::cin using "true" or "false", use std::boolalpha. When std::boolalpha is enabled, the values 0/1 will no longer be no longer be treated as booleans. For example,
+
+```cpp
+#include <iostream>
+
+int main()
+{
+    bool b2{};
+    std::cout << "Enter a boolean value 0/1: ";
+    std::cin >> b2;
+    std::cout << "You entered: " << b2 << '\n';
+
+    std::cin >> std::boolalpha;
+    std::cout << std::boolalpha;
+
+    bool b3{};
+    std::cout << "Enter another boolean value true/false: ";
+    std::cin >> b3;
+    std::cout << "You entered: " << b3 << '\n';
+
+    return 0;
+}
+```
+
+## Boolean Return Values
+Boolean values are often used as the return type for functions that check whether something is equal or not. These functions often start with the word *is* (e.g. isEqual) or *has* (e.g. hasCommonDenominator). For example,
+
+```cpp
+bool isEqual(int x, int y)
+{
+    return (x==y);
+}
+```
+
+# [4.10 - Introduction to If Statements](https://www.learncpp.com/cpp-tutorial/introduction-to-if-statements/)
+If statements have the following structure:
+```cpp
+if (condition)
+    true_statement;
+```
+
+If `condition` evaluates to true, then `true_statement` is executed. 
+
+**Warning:** if statements only conditionally execute a single statement. In order to conditionally execute multiple statements, see lesson [7.2 - If statements and blocks](https://www.learncpp.com/cpp-tutorial/if-statements-and-blocks/)
+
+## If Else
+An **if else** statement looks like this:
+```cpp
+if (x==0)
+    std::cout << "x equals zero\n";
+else
+    std::cout << "x is not equal to zero\n";
+```
+
+## Chaining If Statements
+You can chain if statements like so:
+```cpp
+if (x>0)
+    std::cout << "x is greater than zero\n";
+else if (x<0)
+    std::cout << "x is less than zero\n";
+else
+    std::cout << "x is equal to zero\n";
+```
+
+## Boolean Return Values and If Statements
+The following program uses the boolean functionality above:
+```cpp
+#include <iostream>
+
+bool isEqual(int x, int y)
+{
+    return (x==y);
+}
+
+int main()
+{
+    int x{};
+    std::cout << "Enter an integer: ";
+    std::cin >> x;
+
+    int y{};
+    std::cout << "Enter another integer: ";
+    std::cin >> y;
+
+    if (isEqual(x,y))
+        std::cout << x << " and " << y << " are equal.\n";
+    else
+        std::cout << x << " and " << y << " are NOT equal.\n";
+    
+    return 0;
+}
+```
+
+## Non-Boolean Conditionals
+Non-Boolean conditionals get converted to Boolean values: non-zero values get converted to *true*, and zero gets converted to *false*. For example,
+
+```cpp
+if (4)
+    std::cout << "Hi.\n";
+else
+    std::cout << "Bye.\n";
+```
+
+Output:
+```
+Hi
+```
+
+# [4.10 - Chars](https://www.learncpp.com/cpp-tutorial/chars/)
