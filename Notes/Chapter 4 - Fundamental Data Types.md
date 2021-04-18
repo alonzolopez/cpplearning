@@ -570,4 +570,332 @@ Output:
 Hi
 ```
 
-# [4.10 - Chars](https://www.learncpp.com/cpp-tutorial/chars/)
+# [4.11 - Chars](https://www.learncpp.com/cpp-tutorial/chars/)
+The **char** data type was designed to hold characters (a single letter, number, or whitespace). The char data type is an integral type, meaning the underlying value is stored as an integer. More specifically, the char data type is stored as an ASCII character, or a number from 0 to 127 that maps to a character in the English language.
+
+## Initializing chars
+You can initialize with character literals 
+```cpp
+char ch1{'a'};
+```
+or integers corresponding to the ASCII code, but you should avoid this
+```cpp
+char ch2{5}; // stored as integer 5 corresponding to ENQ
+```
+because it could be confused for this
+```cpp
+char ch3{'5'}; // stored as integer 53 corresponding to 5
+```
+
+**Warning:** don't initialize with integers.
+
+## Printing chars
+When using std::cout to print a char, std::cout outputs the variable as an ASCII character. For example,
+```cpp
+char ch{'a'};
+std::cout << ch;
+
+char ch2{'b'};
+std::cout << ch2;
+```
+output:
+```
+ab
+```
+
+## Printing chars as integers via type casting
+See section [6.6 - Explicit type conversion (casting) and static_cast](https://www.learncpp.com/cpp-tutorial/explicit-type-conversion-casting-and-static-cast/) for more on type casting, but you can do the following to print a char as the integer value it's stored as. For example, 
+```cpp
+char ch{'a'};
+std::cout << static_cast<int>(ch) <<'\n';
+```
+output: 
+```
+97
+```
+
+This followws the format
+```cpp
+static_cast<new_type>(expression)
+```
+which takes `expression` as input and converts it to `new_type`. 
+
+## Inputting chars
+You can input a character via std::cin. For example,
+```cpp
+std::cout "Input a keyboard character: ";
+
+char ch{};
+std::cin >> ch;
+std::cout << ch << " has ASCII code " << static_cast<int>(ch) << '\n';
+```
+
+Note that if the user inputs more than one character, char can only hold one character so the subsequent characters will remain in the input buffer/queue that std::cin uses and can be extracted with subsequent calls to std::cin.
+
+## Escape sequences
+Here is a table of escape sequences, of which `'\n'` is the most common
+![espace sequences](images/escape-sequences.png)
+
+## Single vs Double Quotes
+Stand-alone chars can only hold one character, and are placed in single quotes (e.g. 't' or '\n'). *Strings* are a collection of sequential characters and placed in double quotes (e.g. "this is a string"). 
+
+**Rule:** put stand-alone chars (e.g. 'g' or '\n') in single quotes, not double quotes (e.g. not "g" or "\n") to help the compiler optimize.
+
+# [4.12 - An Introduction to std::string](https://www.learncpp.com/cpp-tutorial/an-introduction-to-stdstring/)
+Strings are not a fundamental type in C++, but instead a compound type. They should be put in double quotes (e.g. "this is a string").
+
+## std::string
+To using strings, we need to first include the string header
+
+```cpp
+#include <string>
+
+std::string myName{}; // empty string
+
+std::string yourName{"John"};
+
+std::cout << "your name is " << yourName << '\n';
+```
+
+## String input with std::cin
+std::cin breaks at whitespaces, so you have to be careful (or avoid) using it to input strings. For example, asking a user to input first and last name
+```cpp
+std::cout << "Enter your first and last name: ";
+std::string name{};
+std::cin >> name;
+
+std::cout << "Enter your age: ";
+std::string age{};
+std::cin >> age;
+```
+Assuming the user input 
+```
+Enter your first and last name: John Doe
+Enter your age: 45
+```
+Would save `name` as `John` and `age` as `Doe`. Instead, use std::getline().
+
+## Use std::getline() to input text
+To read a full line of input into a string, use std::getline()
+
+```cpp
+#include <string>
+#include <iostream>
+#include <iomanip> // for std::ws
+
+int main()
+{
+    std::cout << "Enter your full name: ";
+    std::string name{};
+    std::getline(std::cin >> std::ws, name); // read a full line of text into name
+
+    std::cout << "Enter your age: ";
+    std::string age{};
+    std::getline(std::cin >> std::ws, age);
+
+    std::cout << "Your name is " << name << " and your age is " << age << '\n';
+
+    return 0;
+}
+```
+
+## What the heck is std::ws?
+**Best practice:** Use the std::ws input manipulator with std::getline() to ignore leading whitespaces and properly read lines of input.
+
+**Key Insight:** Using the extraction operator (>>) with std::cin ignores leading whitespace. std::getline() does not ignore leading whitespace unless you use the input manipulator std::ws.
+
+## String Length
+To get a string's length, call its member function as below
+```cpp
+#include <iostream>
+#include <string>
+
+int main()
+{
+    std::string myName("Alonzo");
+    std::cout << "Your name has " << myName.length() << " characters.\n";
+    return 0;
+}
+```
+
+# [4.13 - Literals](https://www.learncpp.com/cpp-tutorial/literals/)
+**Literal constants** (a.k.a. **literals**) are constants because their values cannot be changed dynamically (you have to change them then recompile for the changes to take effect).
+
+The type of a literal is assumed by the value and format of the literal itself:
+![literal defaults](images/literal-defaults.png)
+
+If you'd like to indicate a type different from the default, add a suffix:
+![literal suffixes](images/literal-suffixes.png)
+
+For example, the for floating point literals is a double, but if we want to initialize a float, we must do the following
+```cpp
+#include <iostream>
+
+int main()
+{
+    // this is how to properly define a float from a literal
+    float f{ 4.1f };
+    std::cout << f << '\n';
+
+    // the following will work because it casts the double as a float, 
+    // but may result in a loss of precision; AVOID THIS
+    float g{ 5.3 }; 
+    std::cout << g << '\n';
+
+    return 0;
+}
+```
+
+## Scientific Notation for Floating Point Literals
+```cpp
+double pi { 3.14159 };
+double avogadro { 6.02e23 };
+double electron { 1.6e-19 };
+```
+
+## Octal and Hexadecimal Literals
+Octal is base 8, and we count like
+![octal](images/octal.png)
+To indicate an octal literal, use the prefix `0`
+```cpp
+int x{ 012 };
+std::cout << x;
+```
+output:
+```
+10
+```
+The output is 10 because std::cout prints in base 10 (decimal).
+
+Hexadecimal is base 16, and we count like
+![hexadecimal](images/hexadecimal.png)
+To indicate a hexadecimal literal, use the prefix `0x`
+```cpp
+int x{0xF};
+std::cout << x;
+``
+output:
+```
+15
+```
+## Magic Numbers
+**Best practice:** don't use magic numbers in code. (i.e. literals with litle context).
+
+# [4.14 - Const, constexpr, and Symbolic Constants](https://www.learncpp.com/cpp-tutorial/const-constexpr-and-symbolic-constants/)
+
+## Const Variables
+We can define variables as **const** so their values are not changed. When doing this, we have to initialize when we define them.
+
+```cpp
+const double gravity{ 9.8 };
+```
+To indicate that a function parameter is const (so the user knows the function will not change the value of the input and to ensure that the function doesn't change the input), use the following format
+```cpp
+void printInteger(const int myValue)
+{
+    std::cout << myValue;
+}
+```
+
+You can define a const variable in the following way, but it's not in-line with best practice
+```cpp
+double const gravity{ 9.8 };
+```
+
+And you MUST initalize the const when you define it. The below will cause a compiler error
+```cpp
+double const gravity; // COMPILER ERROR
+```
+
+## Run-time vs compile-time constants
+**Run-time constants** are those whose initialization values can only be resolved at run-time (e.g. based on user input or function input parameters).
+
+**Compile-time constants** are those whose initialization values can be determined at compile time.
+
+## Symbolic Constants
+Instead of using magic numbers, use symbolic constants. Don't declare symbolic constants using object-like macros with a substitution parameter. Instead, use constexpr variables.
+
+## Bad: using object-like macros with a substitution parameter as symbolic constants
+Avoid using object-like macros with substitution parameters as below
+```cpp
+#define MAX_STUDENTS_PER_CLASS 30
+```
+This is deprecated and has a few cons:
+1. Macros are resolved in the preprocessor and do not show up in the debugger, meaning we can't watch MAX_STUDENTS_PER_CLASS, making it harder to debug.
+2. Macros can conflict with normal code.
+3. Macros don't follow normal scoping rules and can conflict with code it wasn't supposed to interact with.
+
+**Warning:** avoid using #define to create symbolic constants macros.
+
+## A Better Solution: Use constexpr variables
+**Best practice:** use constexpr variables to provide a name and context for your magic numbers.
+```cpp
+constexpr int maxStudentsPerClass { 30 };
+```
+
+## Using Symbolic Constants Throughout a Multi-file Program
+If you need to use symbolic constants throughout your code (e.g. in multiple files), it's better to define them in one central location (e.g. a header file) and use them wherever they're needed. This way, if you have to change them, they're all in one central place and easy to track down.
+
+**constexpr are compile-time constants**
+
+Here is the general process:
+1. Create a header file to hold these constants (e.g. `constants.h`).
+2. Inside this header file, declare a namespace (e.g. `namespace constants`).
+3. Add all your constants inside your namespace (in C++11/14, use `constexpr`; in C++17 or newer, use `inline constexpr`).
+4. `#include` your header file wherever you need it.
+
+For example:
+constants.h (C++11/14):
+```cpp
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+// define your own namespace to hold constants
+namespace constants
+{
+    constexpr double pi { 3.14159 };
+    constexpr double avogadro { 6.0221413e23 };
+    constexpr double my_gravity { 9.2 };
+}
+
+#endif
+```
+
+constants.h (C++17 or newer):
+```cpp
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+// define your own namespace to hold constants
+namespace constants
+{
+    inline constexpr double pi { 3.14159 };
+    inline constexpr double avogadro { 6.0221413e23 };
+    inline constexpr double my_gravity { 9.2 };
+}
+
+#endif
+```
+
+And to access these constants in main.cpp, use the scope resolution operator (::)
+main.cpp:
+```cpp 
+#include "constants.h"
+#include <iostream>
+
+int main()
+{
+    std::cout << "Enter a radius: ";
+    int radius{};
+    std::cin >> radius;
+
+    double circumference { 2.0 * constants::pi * radius };
+    std::cout << "The circumference is " << circumference << '\n';
+
+    return 0
+}
+```
+
+# [4.x - Chapter 4 Summary and Quiz](https://www.learncpp.com/cpp-tutorial/chapter-4-summary-and-quiz/)
+See [question 3](../4-projects/question-3/main.cpp) and [question 4](../4-projects/question-4/main.cpp) for solutions
+
