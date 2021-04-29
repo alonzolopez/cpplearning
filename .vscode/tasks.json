@@ -28,6 +28,8 @@
 			"args": [
 				"-g",
 				"${file}",
+				"${fileDirname}/foo.cpp",
+				"${fileDirname}/goo.cpp",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}"
 			],
