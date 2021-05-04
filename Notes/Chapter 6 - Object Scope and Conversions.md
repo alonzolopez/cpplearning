@@ -144,3 +144,184 @@ int main()
 ```
 
 ## Using the Scope Resolution Operator with No Name Prefix
+Using the scope resolution operator looks in the global namespace. For example,
+```cpp
+#include <iostream>
+
+void print()
+{
+    std::cout << "Hello."; 
+}
+int main()
+{
+    ::print();
+
+    return 0;
+}
+```
+
+## Identifier Resolution from within a Namespace
+If an identifier is used within a namespace and no scope resolution is provided, the compiler first tries to resolve the identifier in the active namespace, then if no matching identifier is found the compiler checks each containing namespace in sequence ending with the global namespace. For example,
+```cpp
+#include <iostream>
+
+void print()
+{
+    std::cout << " there\n";
+}
+
+namespace foo
+{
+    void print()
+    {
+        std::cout << "Hello";
+    }
+
+    void printHelloThere()
+    {
+        print();    // no (::), calls print() in foo namespace
+        ::print();  // calls print in global namespace
+    }
+}
+
+int main()
+{
+    foo::printHelloThere();
+
+    return 0;
+}
+```
+
+## Multiple namespace blocks are allowed
+It's legal to declare namespace blocks in multiple locations (e.g. across multiple header/source files or multiple places within the same file). For an example of namespaces declared across multiple header and source files then used in the `main.cpp`, see [foo.h](../6-projects/6-2-1/foo.h), [foo.cpp](../6-projects/6-2-1/foo.cpp), [goo.h](../6-projects/6-2-1/goo.h), [goo.cpp](../6-projects/6-2-1/goo.cpp), [main.cpp](../6-projects/6-2-1/main.cpp)
+
+## Nested Namespaces
+Namespaces can be nested and accessed like
+```cpp
+#include <iostream>
+
+namespace foo
+{
+    namespace goo
+    {
+        int add(int x, int y)
+        {
+            return x + y;
+        }
+    }
+}
+
+int main()
+{
+    std::cout << foo::goo::add(1, 2) << '\n';
+    return 0;
+}
+```
+
+Since C++17, you can also nest namespaces as
+```cpp
+#include <iostream>
+
+namespace foo::goo
+{
+    int add(int x, int y)
+    {
+        return x + y;
+    }
+}
+
+int main()
+{
+    std::cout << foo::goo::add(1, 2) << '\n';
+    return 0;
+}
+```
+
+## Namespace aliases
+You can also define aliases for full namespaces. For example,
+```cpp
+int main()
+{
+    namespace boo = foo:goo;
+    std::cout << boo::add(1, 2);    // equivalent to foo::goo::add()
+    return 0;
+}   // the boo alias ends here
+```
+
+## When you should use namespaces
+- namespaces can be used to separate application-specific code from code that might be reusable later
+- when writing a library to distribute to others, always place your code inside a namespace
+
+# [6.3 - Local Variables](https://www.learncpp.com/cpp-tutorial/local-variables/)
+As a refresher, **scope** determines where an identifier can be accessed within the source code. It's a compile-time property. When an identifier can be accessed, we say it is in scope. When it cannot be accessed, we say it is out of scope.
+
+## Local variables have block scope
+Local variables have **block scope**, meaning they are *in scope* from the point of their definition and go out of scope at the end of the block they are defined in. That includes function parameters.
+```cpp
+int max(int x, int y)   // x and y enter scope here
+{
+    int max{ (x > y) ? x : y};  // max enters scope here
+    return max;
+}   // x, y, and max go out of scope here
+
+int main()
+{
+    int i { 5 };        // i enters scope here
+    double d { 4.0 };   // d enters scope here
+
+    return 0;
+}   // i and d go out of scope here
+```
+
+**Note:** all variable names must be unique within a given scope.
+
+## Local variables have automatic storage duration
+A variable's **storage duration** (a.k.a. **duration**) determines what rules govern when and how a variable will be created and destroyed. In most cases, a variable's storage duration directly determines its `lifetime`.
+
+Local vars have automatic storage duration, which means they are created at the point of definition and destroyed at the end of the block they are defined in.
+
+## Local variables in nested blocks
+Local variables defined inside nested blocks go out of scope at the end of the block. On the other hand, nested blocks are considered part of the scope of the block in which they are nested in, so variables defined in the outer block *can* be seen inside the nested block.
+
+```cpp
+#include <iostream>
+
+int main()
+{
+    int x { 5 };        // x enters scope here
+
+    {
+        int y { 7 };    // y enters scope here
+        std::cout << x << " + " << y << " = " << x + y << '\n';
+    }                   // y goes out of scope and is destroyed here
+
+    return 0;
+}                       // x goes out of scope and is destroyed here
+```
+
+## Local variables have no linkage
+Identifiers have a property called `linkage`. An identifier's **linkage** determines whether other declarations of that name refer to the same object or not. 
+
+Local variables have no linkage, which means that each declaration refers to a unique object. For example,
+
+```cpp
+int main()
+{
+    int x { 2 };        // local variable, no linkage
+
+    {
+        int x { 3 };    // this identifier refers to a different object than the previous x
+    }
+}
+```
+This concept will come up again in the subsequent lessons.
+
+## Variables should be defined in the most limited scope
+**Best practice:** define variables in the most limited existing scope (by limiting the scope, you reduce the number of active variables and the complexity of the program). Avoid creating new blocks whose only purpose is to limit the scope of variables.
+
+## Scope vs duration vs lifetime
+A variable's scope determines where the variable is accessible. Duration defines the rules that govern when a variable is created and destroyed. A variable's lifetime is the actual time between its creation and destruction.
+
+Local variables have block scope, which means they can be accessed inside the block in which they are defined.
+
+Local variables have automatic duration, which means they are created at the point of definition and destroyed at the end of the block in which they are defined.
