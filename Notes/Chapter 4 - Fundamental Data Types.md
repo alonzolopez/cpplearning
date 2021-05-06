@@ -765,15 +765,19 @@ output:
 ```
 10
 ```
+
 The output is 10 because std::cout prints in base 10 (decimal).
 
 Hexadecimal is base 16, and we count like
 ![hexadecimal](images/hexadecimal.png)
+
 To indicate a hexadecimal literal, use the prefix `0x`
+
 ```cpp
 int x{0xF};
 std::cout << x;
-``
+```
+
 output:
 ```
 15

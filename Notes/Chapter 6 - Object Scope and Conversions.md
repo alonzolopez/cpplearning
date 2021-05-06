@@ -325,3 +325,190 @@ A variable's scope determines where the variable is accessible. Duration defines
 Local variables have block scope, which means they can be accessed inside the block in which they are defined.
 
 Local variables have automatic duration, which means they are created at the point of definition and destroyed at the end of the block in which they are defined.
+
+# [6.4 - Introduction to Global Variables](https://www.learncpp.com/cpp-tutorial/introduction-to-global-variables/)
+
+## Declaring and naming global variables
+By convention, global variables are named at the top of a file, below the includes but above any code.
+
+**Best practice:** consider using a "g" or "g_" prefix for global variables to help differentiate them from local variables.
+
+## Global variables have file scope and static duration
+Global variables have **file scope** (a.k.a. **global scope** or **global namespace scope**) meaning they are visible from the point of declaration until the end of the file in which they are declared. Once declared, they can be used anywhere inside that file.
+
+Global variables are part of the global namespace scope.
+
+Global variables are created when the program starts and destroyed when it ends. This is called **static duration**. Variables with static duration are sometimes called **static variables**.
+
+Unlike local variables, global variables are zero-initialized by default.
+
+## Global variable initialization
+Non-constant global variables can be optionally initializec.
+
+```cpp
+int g_x;        // zero-initialized by default
+int g_x {};     // zero-initialized
+int g_x { 1 };  // initialized with value
+```
+
+## Constant global variables
+Constant global variables must be initialized
+```cpp
+#include <iostream>
+
+const int g_x;      // error: not initialized
+constexpr int g_w;  // error: not initialized
+
+const int g_y { 1 };
+constexpr int g_z { 2 };
+```
+
+**Warning:** Avoid using non-constant global variables.
+
+## Quick Summary
+```cpp
+// non-constant global variables
+int g_x;        // zero-initialized by default
+int g_x {};     // zero-initialized
+int g_x { 1 };  // initialized with value
+
+// const global variables
+const int g_x;          // error: not initialized
+const int g_y { 1 };    // good
+
+// constexpr global variables
+constexpr int g_w;          // error: not initialized
+constexpr int g_z { 2 };    // good
+```
+
+# [6.5 - Variable Shadowing (name hiding)](https://www.learncpp.com/cpp-tutorial/variable-shadowing-name-hiding/)
+
+When a variable inside a nested block has the same identifier as a variable in an outer block, it "hides" the outer variable when they are both in scope (i.e. in the block where the inner variable is defined). This is called **name hiding** or **shadowing**.
+
+```cpp
+#include <iostream>
+
+int main()
+{   // outer block
+
+    int apples { 5 };   // the outer block apples
+
+    {   // nested block
+        // apples here refers to the outer block apples
+        std::cout << apples << '\n';    // print value of outer block apples
+
+        int apples{};   // define apples in the scope of the nested block
+
+        // apples now refers to the nested block apples
+        // the outer block apples is temporarily hidden
+
+        apples = 10;    //  assigns the value to nested block apples
+
+        std::cout << apples << '\n';    // print value of nested block apples
+    }   // nested block apples destroyed
+
+    std::cout << apples << '\n';    // print outer block apples
+
+    return 0;
+}   // outer block apples destroyed
+```
+
+## Shadowing of global variables
+Similar to how nested variables can shadow local variables in an outer block, local variables can shadow global variables when the local variable is in scope:
+```cpp
+#include <iostream>
+
+int value { 5 }; // global var
+
+void foo()
+{
+    // global value not shadowed here; this refers to the global value
+    std::cout << "global variable value: " << value << '\n'; 
+}
+
+int main()
+{
+    // hides the global variable value WITHIN the block
+    // UNTIL the end of the block
+    int value { 7 };    
+
+    ++value;    // increments local, not global value
+
+    std::cout << "local variable value: " << value << '\n';
+
+    // we can access the global value with ::
+    std::cout << "global variable value: " << ::value << '\n';
+
+    foo();
+
+    return 0;
+}   // local value destroyed
+```
+
+## Avoid variable shadowing
+**Best practice:** avoid variable shadowing. This is easy if you use the "g_" prefix for global variables.
+
+# [6.6 - Internal Linkage](https://www.learncpp.com/cpp-tutorial/internal-linkage/)
+
+An identifier with **internal linkage** can be seen and used within a single file, but is not accessible from other files (i.e. it's not exposed to the linker). If two files have identically named identifiers with internal linkage, those identifiers will be treated as independent.
+
+## Global variables with internal linkage
+
+Global variables with internal linkage are sometimes called **internal variables**
+
+To make a non-constant global variable internal, we use the `static` keyword.
+
+`const` and `constexpr` global variables have internal linkage by default (i.e. don't need the `static` keyword).
+
+Because internal linkage means identical identifiers across files will be treated as independent, `g_x` is independent across two files:
+a.cpp:
+```cpp
+constexp int g_x { 2 };
+```
+
+main.cpp:
+```cpp
+#include <iostream>
+
+static int g_x { 3 };
+
+int main()
+{
+    std::cout << g_x '\n';
+
+    return 0;
+}
+```
+
+## The one-definition rule and internal linkage
+Because internal objects (and functions) defined in different files are considered independent, they do not violate the one definition rule.
+
+## Functions with internal linkage
+Internal linkage applies to *identifiers* including functions.
+
+In the following example, the call to `add()` in main.cpp WILL NOT link:
+a.cpp:
+```cpp
+// static declaration means only usable within this file
+// attempts to access it from another file via forward declaration will fail
+static add(int x, int y)
+{
+    return x + y;
+}
+```
+
+main.cpp:
+```cpp
+#include <iostream>
+
+int add(int x, int y);  // forward declaration
+
+int main()
+{
+    std::cout << add(3, 4) << '\n';
+
+    return 0;
+}
+```
+
+# [6.7 - External Linkage](https://www.learncpp.com/cpp-tutorial/external-linkage/)
