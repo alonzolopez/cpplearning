@@ -266,7 +266,7 @@ A **do while statement** is a looping construct that works just like a while loo
 
 For an example of a do-while loop, see [main.cpp](../7-projects/7-8/main.cpp)
 
-# [For statements](https://www.learncpp.com/cpp-tutorial/for-statements/)
+# [7.9 - For statements](https://www.learncpp.com/cpp-tutorial/for-statements/)
 The easiest way to understand what a `for` loop does is by converting it to an equivalent `while` loop.
 for loop:
 ```cpp
@@ -398,3 +398,190 @@ You can register functions that will automatically be called on program terminat
 `std::terminate` is typically used in conjunction with exceptions. Althought it can be called explicitly, it is more often called implicitly when an exception isn't handled (and in other cases). By default, `std::terminate()` calls `std::abort()`.
 
 # [7.12 - Introduction to testing your code](https://www.learncpp.com/cpp-tutorial/introduction-to-testing-your-code/)
+**Best practice:** write your program in small, well-defined units (functions or classes), compile often, and test your code as you go.
+
+# [7.13 - Code Coverage](https://www.learncpp.com/cpp-tutorial/code-coverage/)
+**Code coverage** is used to describe how much of the source code of a program is executed while testing.
+
+## Statement coverage
+**Statement coverage** refers to the percentage of statements in your code that have been exercised by your testing routines.
+
+Aiming for 100% statement coverage is good, but it's not enough to ensure correctness.
+
+## Branch coverage
+**Branch coverage** refers to the percentage of branches that have been executed, each possibly branch counted separately.
+
+**Best practice:** aim for 100% branch coverage of your code.
+
+## Loop coverage
+**Best practice:** use the `0, 1, 2` test to ensure your loops work correctly with different numbers of iterations.
+
+## Testing different categories of input
+Do it.
+
+# [7.14 - Common semantic errors in C++](https://www.learncpp.com/cpp-tutorial/common-semantic-errors-in-c/)
+See the page for a run-down of some common semantic errors.
+
+# [7.15 - Detecting and handling errors](https://www.learncpp.com/cpp-tutorial/detecting-and-handling-errors/)
+
+## Handling errors in functions
+There is no best way to handle an error - it's really case-dependent. Here are 4 general strategies that can be used:
+- handle the error within the function
+- pass the error back to the caller to deal with
+- halt the program
+- throw an exception
+
+## Handling the error within the function
+If possible, handle the error inside the function. 
+
+A good strategy: the program can retry until success is achieved. For example, asking the user to input again until proper input is received, or if Internet connection is required, retrying until connection is established.
+
+What's less useful is just ignoring the error and cancelling the operation. The calling function might be dependent on the called function to produce some useful side-effect, and just ignoring and maybe producing a warning doesn't take care of the issue.
+
+You can use `std::cerr` to print out an error message.
+
+```cpp
+void printDivision(int x, int y)
+{
+    if (y != 0 )
+    {
+        std::cout << static_cast<double>(x) / y;
+    }
+    else
+    {
+        std::cerr << "Error: could not divide by zero\n";
+    }
+}
+```
+
+## Passing errors back to the caller
+Two strategies that might be useful in specific situations:
+1. If the function has a void return type, change it to Boolean that indicates success or failure.
+2. If the full range of return values is not used, reserve a specific value to indicate an error has occurred.
+
+## Fatal error
+If a **fatal error** or non-recoverable error occurs, the best thing to do might be to terminate the program. 
+
+If your code is in main() or a function called directy from main(), let main() return a non-zero status code.
+
+If you're deep in some nested subfunction, use a halt statement such as `std::exit()`.
+
+## Exceptions
+`exceptions` will be covered in Chapter 20. 
+
+The basic idea is that when an error occurs, an exception is "thrown".If the current function does not "catch" the error, the caller of the function has a chance to catch the error. If the caller does not catch the error, then the caller's caller has a chance to catch the error, and so on moving up the call stack until it is either caught and handled (at which point execution continues normally) or until main() failes to handle the error (at which point the program is terminated with an exception error).
+
+# [7.16 - std::cin and handling invalid input](https://www.learncpp.com/cpp-tutorial/stdcin-and-handling-invalid-input/)
+## std::cin, buffers, and extraction
+When the extraction operator>> is used, the following procedure happens:
+1. If there is data already in the input buffer, that data is used for extraction.
+2. If the input buffer contains no data, the user is asked to input data for extraction (this is the case most of the time)
+3. operator>> extracts as much data from the input buffer as it can into the variable (ignoring leading whitespace characters such as spaces, tabs, or '\n')
+4. Any data no extracted is left in the input buffer for the next extraction.
+
+**Note:** extraction fails if the input data does not match the type of the variable being extracted to. For example,
+```cpp
+int x{};
+std::cin >> x;
+```
+If the user inputs 'b', this would fail.
+
+On another note, if the user enters "5a", then "5" would be extracted and "a\n" would be left in the input buffer for the next extraction.
+
+## Validating input
+There are three basic ways to do input validation:
+* Inline (as the user types). 
+    1. Check input as it comes in by calling a function every time the user enters a character and prevent them from entering invalid input in the first place.
+* Post-entry (after the user types) - 
+
+    2. Let the user enter whatever they want into a string, then validate whether the string is correct, and if so, convert the string to the final variable format.
+    3. Let the user enter whatever they want, let std::cin and operator>> try to extract it, and handle the error cases.
+
+See the page for examples of how to handle these cases.
+
+## Putting it all together
+This section has a really good example on what complete input validation looks like for `std::cin`.
+
+## Conclusion
+The following code will clear any extraneous input:
+```cpp
+std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n')
+```
+
+The following code will test and fix failed extractions or overflow:
+```cpp
+if (std::cin.fail()) // has a previous extraction failed or overflowed?
+{
+    // yes, so let's handle the failure
+    std::cin.clear(); // put us back in 'normal' operation mode
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // and remove the bad input
+}
+```
+
+# [7.17 - Assert and static_assert](https://www.learncpp.com/cpp-tutorial/assert-and-static_assert/)
+
+## Preconditions, invariants, and postconditions
+
+A **precondition** is any condition that must always be true *prior* to the execution of component code.
+
+An **invariant** is a condition that must be true while some component is executing.
+
+A **postcondition** is something that must be true after the execution of some component code.
+
+## Assertions
+Assertions are a shortcut method for if statements that validate an assumption (e.g. parameter value) then print an error and terminate the program.
+
+An **assertion** is an expression that will be true unless there is a bug in the program. If it evaluates to true, then the assertion statement does nothing; if it evaluates to false then an error message is displayed and the program is terminated via `std::abort`. The resulting error message provides useful information needed to debug.
+
+Runtime assertions are available via the **assert** preprocessor macro that lives in the `<cassert>` header.
+
+**Best practice:** use assert statements liberally throughout your code. This is one of the few preprocessor macros that is considered acceptable to use.
+
+For an example of an assert that gets triggered, see [main.cpp](../7-projects/7-17-1/main.cpp)
+
+## Making your assert statements more descriptive
+Do this by including a string literal in the assert statement. The string literal always evaluates to true, so it won't affect the way the assert operates.
+
+```cpp
+assert(found && "Car could not be found in database");
+```
+When triggered, the above assert prints the following error message:
+```cpp
+Assertion failed: found && "Car could not be found in database", file C:\\VCProjects\\Test.cpp, line 34
+```
+
+## NDEBUG
+Ideally, you won't have asserts in production code because:
+1. Your code has been thoroughly tested, so you shouldn't need them.
+2. They incur a slight performance cost each time they are checked.
+
+If the macro NDEBUG is defined, then the assert macro gets disabled. This is a way to turn off asserts in production code. In VSCode, preprocessor definitions are set at the project level: `WIN32`, `NDEBUG`, `_CONSOLE`. To trigger asserts in release builds, remove `NDEBUG` from this setting.
+
+## Some assert limitations and warnings
+Your asserts should not have:
+- bugs
+- side effects
+
+Also note that the abort() function terminates the program immediately without a chance to do any cleanup. For this reason, only use asserts in cases where corruption isn't likely to occur if the program terminates unexpectedly.
+
+## Asserts vs error handling
+They are not the same.
+
+Asserts help us *identify* programming errors that should be logically impossible. Once identified, we can fix them. Assertions do not allow recovery from errors.
+
+Error handling is designed to gracefully handle error cases that are possible (e.g. gracefully handling invalid input). These cases may or may not be recoverable.
+
+## static_assert
+A **static_assert** is an assertion that is checked at *compile-time* rather than at runtime like the normal assert. It is a keyword, so no need to include a header to use it.
+
+The format is
+```cpp
+static_assert(condition, diagnostic_message)
+```
+
+In C++11 and C++14, the `diagnostic_message` is required; in C++17 it is optional.
+
+# Quiz
+[Quiz 1](../7-projects/quiz-1/main.cpp) offers a good example of a while loop and error handling and input validation.
+
+[Quiz 2](../7-projects/quiz-2/main.cpp) offers a good example of a for loop for something functional: checking if a number is prime.
