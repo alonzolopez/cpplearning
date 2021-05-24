@@ -166,3 +166,315 @@ Indexing an array out of range leads to undefined behavior (either using negativ
 See [quiz 1](../9-projects/9-2-quiz-1/main.cpp) and [quiz 2](../9-projects/9-2-quiz-2/main.cpp) for functional examples of arrays.
 
 # [9.3 - Arrays and loops](https://www.learncpp.com/cpp-tutorial/arrays-and-loops/)
+We can use a loop to iterate through an array.
+
+Be careful with off-by-one errors when iterating through arrays.
+
+Here's an example of iterating through an array with a for loop:
+```cpp
+int scores[]{ 84, 92, 76, 81, 56 };
+// int numStudents{ std::size(scores) }; // C++17 or newer
+const int numStudents{ sizeof(scores) / sizeof(scores[0])};
+
+int totalScore{ 0 };
+
+for (int student{ 0 }; student < numStudents; ++student)
+{
+    totalScore += scores[student];
+}
+
+auto averageScore{ static_cast<double>(totalScore) / numStudents};
+```
+
+For another example, see [question 1](../9-projects/9-3-quiz-1/main.cpp) and [question 2](../9-projects/9-3-quiz-2/main.cpp) and [question 3](../9-projects/9-3-quiz-3/main.cpp).
+
+# [9.4 - Sorting an array using selection sort](https://www.learncpp.com/cpp-tutorial/sorting-an-array-using-selection-sort/)
+You can use `std::swap()` to swap two elements:
+```cpp
+#include <iostream>
+#include <utility>
+
+int main()
+{
+    int x{ 2 };
+    int y{ 4 };
+    std::cout << "Before swap: x = " << x << ", y = " << y << '\n';
+    std::swap(x, y);
+    std::cout << "After swap:  x = " << x << ", y = " << y << '\n';
+    return 0;
+}
+```
+
+The section proceeds to provide an example implementation of the sorting algorithm in C++ code, and see my modified implementation to sort in descending order [here](../9-projects/9-4-quiz-2/main.cpp), but you can also use `std::sort()` for this.
+
+## std::sort
+```cpp
+#include <algorithm> // for std::sort
+#include <iostream>
+#include <iterator> // for std::size
+ 
+int main()
+{
+	int array[]{ 30, 50, 20, 10, 40 };
+ 
+    // sort the array
+	std::sort(std::begin(array), std::end(array));
+ 
+    // print the array
+	for (int i{ 0 }; i < static_cast<int>(std::size(array)); ++i)
+		std::cout << array[i] << ' ';
+ 
+	std::cout << '\n';
+    
+    return 0;
+}	
+```
+std::sort will come up again in a future lesson.
+
+For an example of bubble sort, see [here](../9-projects/9-4-quiz-3/main.cpp)
+
+# [9.5 - Multidimensional Arrays](https://www.learncpp.com/cpp-tutorial/multidimensional-arrays/)
+Declare a multidimensional array:
+```cpp
+int array[3][5];
+```
+This creates a multidim array in **row-major** order as follows:
+```
+[0][0]  [0][1]  [0][2]  [0][3]  [0][4] // row 0
+[1][0]  [1][1]  [1][2]  [1][3]  [1][4] // row 1
+[2][0]  [2][1]  [2][2]  [2][3]  [2][4] // row 2
+```
+## Initializing two-dimensional arrays
+```cpp
+int array[3][5]
+{
+    { 1, 2, 3, 4, 5 },
+    { 6, 7, 8, 9, 10},
+    { 11, 12, 13, 14, 15}
+};
+```
+You can also take advantage of automatic zero initialization of individual arrays within the larger multi-dim array like so:
+```cpp
+int array[3][5]
+{
+    { 1, 2}, // last three elements zero-initialized
+    { 6, 7, 8}, // last two elements zero-initialized
+    { 11, 12, 13, 14} // last element zero-initialized
+};
+```
+You can let the compiler figure out ONLY the leftmost length specification, but not for both
+```cpp
+int array[][5]
+{
+    { 1, 2, 3, 4, 5 },
+    { 6, 7, 8, 9, 10},
+    { 11, 12, 13, 14, 15}
+};
+```
+You can zero-initialize the whole thing with:
+```cpp
+int array[3][5]{};
+```
+
+## Accessing elements in a 2D array
+Use a double for loop or *for-each* loop to do this.
+
+## Multidimensional arrays larger than two dimensions
+Arrays can be larger than 2D. 
+
+Declaring a 3D array:
+```cpp
+int array[3][4][5];
+```
+You usually zero-initialize them and explicitly assign values using nested loops or functions.
+
+Access values the same way:
+```cpp
+std::cout << array[2][1][2];
+```
+
+# [9.6 - C-style strings](https://www.learncpp.com/cpp-tutorial/c-style-strings/)
+C-style strings are char arrays. They follow all the same rules as arrays (because they are arrays). 
+```cpp
+char myString[]{"string"};
+```
+Note that C++ automatically appends the null terminator to the end of the string for us ('\0' or ASCII code 0).
+
+`std::cout` will print the string's elements until it hits the null terminator. If that element is altered or omitted, std::cout will print garbage until it sees a null terminator.
+
+The section goes over useful copy, manipulation, and other functions for C-style strings, but it's recommended to not use C-style strings in the first place. 
+
+**Rule:** use `std::string` or `std::string_view` instead of C-style strings.
+
+# [9.7 - An introduction to std::string_view](https://www.learncpp.com/cpp-tutorial/an-introduction-to-stdstring_view/)
+**Best practice:** Use `std::string_view` instead of C-style strings. 
+
+**Best practice:** prefer `std::string_view` over `std::string` for read-only strings, unless you already have a `std::string`.
+
+std::string_view comes with a lot of the useful functions that std::string does too (length, find, indexing, etc))
+
+## View modification functions
+You can change how much of the string is viewable using `remove_prefix()` and `remove_suffix()` but you can't undo this.
+
+## Ownership issues
+**Warning:** make sure that the underlying string viewed with a std::string_vew does not go out of scope and isn't modified while using the std:string_view. Modifying a std::string can cause its internal string to die and be replaced with a new one in a different place.
+
+## Converting a std::string_view to a std::string
+You can do this via initialization of a new std::string using the std::string_view or via static_cast
+```cpp
+std::string_view sv{ "ball" };
+
+std::string str{ sv }; // okay
+std::cout << static_cast<std::string>(sv); // also okay
+```
+
+## Opening the window (kinda) via the data() function
+**Warning:** only use std::string_view::data() if the std::string_view's view hasn't been modified and the string being viewed is null-terminated. Using std::string_view::data() of a non-null-terminated string can cause undefined behavior.
+
+## Incomplemete implementation
+`std::string_view` is new and not completely implemented.
+For example, you can't add std::string with an std::string_view.
+
+# [9.8 - Introduction to pointers](https://www.learncpp.com/cpp-tutorial/introduction-to-pointers/)
+A variable is a name for a piece of memory that holds a value. When our program instantiates a variable, a free memory address (from RAM) is automatically assigned to the variable, and any value we assign to the variable is stored in this memory address.
+
+## The address-of operator (&)
+The address-of operator (&) allows us to see what *memory address* is assigned to the variable. For example:
+```cpp
+#include <iostream>
+
+int main()
+{
+    int x{ 5 };
+    std::cout << x << '\n';
+    std::cout << &x << '\n';
+
+    return 0;
+}
+```
+output:
+```
+5
+0027FEA0
+```
+
+## The indirection operator (*)
+The indirection operator (*) (a.k.a. the dereference operator) allows us to access the value at a particular address:
+```cpp
+#include <iostream>
+
+int main()
+{
+    int x{ 5 };
+    std::cout << x << '\n';
+    std::cout << &x << '\n';
+    std::cout << *(&x) << '\n';
+
+    return 0;
+}
+```
+output:
+```
+5
+0027FEA0
+5
+```
+
+## Pointers
+A **pointer** is a variable that holds a *memory address* as its value.
+
+## Declaring a pointer
+Pointer variables are declared like normal variables but with an asterisk between the data type and the variable name.
+**Best practice:** when declaring a pointer variable, put the asterisk next to the type to make it easier to distinguish from indirection:
+```cpp
+int* iPtr{};
+```
+
+Avoid other sntaxes or invalid syntax.
+
+## Assigning a value to a pointer
+To get the address of a variable, we use the address-of operator:
+```cpp
+int v{ 5 };
+int* ptr{ &v }; // initialize the ptr with address of variable v
+```
+So the following
+```cpp
+#include <iostream>
+ 
+int main()
+{
+    int v{ 5 };
+    int* ptr{ &v }; // initialize ptr with address of variable v
+ 
+    std::cout << &v << '\n'; // print the address of variable v
+    std::cout << ptr << '\n'; // print the address that ptr is holding
+ 
+    return 0;
+}
+```
+prints:
+```
+0012FF7C
+0012FF7C
+```
+
+Note: the type of the pointer must match the type of the variable being pointed to.
+
+You cannot initialize a pointer with a literal. Both of the following DO NOT work:
+```cpp
+int* ptr{ 5 };  // ERROR
+double* dptr{ 0x0012FF7C }; // ERROR
+```
+
+## The address-of oeprator returns a pointer
+NOTE: the address-of operator& returns a pointer containing the address of the operand whose type is derived from the argument (e.g. taking the address of an int will return the address in an int pointer).
+
+## Indirection through pointers
+Using the pointer, we can get the value of the variable being pointed to. Indirection through a pointer evaluates to the contents of the address it is pointing to:
+```cpp
+int value{ 5 };
+std::cout << &value;    // prints the address of value
+std::cout << value;     // prints the contents of value
+
+int* ptr{ &value };     // initialize pointer
+std::cout << ptr;       // prints the address held in ptr
+std::cout << *ptr;      // prints the value stored at the address pointed to by the pointer
+```
+output:
+```
+0012FF7C
+5
+0012FF7C
+5
+```
+
+You can also reassign pointers to another value and assign values to the variable itself:
+```cpp
+int value1{ 5 };
+int value2{ 7 };
+
+int* ptr{};
+
+// ptr points to the address that stores value1
+ptr = &value1;
+std::cout << *ptr;
+
+// ptr points to the address that stores value2
+ptr = &value2;
+std::cout << *ptr;
+
+// assign a new value to value2 through the pointer
+*ptr = 9;
+std::cout << value2;
+```
+
+## The size of pointers
+A pointer is just a memory address, and the number of bits needed to access a memory address on a given machine is always constant. A 32-bit executable uses 32-bit memory addresses, so a pointer on a 32-bit machine is 32 bits (4 bytes). With a 64-bit executable, a pointer would be 64 bits (8 bytes). This is true regardless of the object being pointed to.
+
+## Conclusion
+Pointers are variables that hold a memory address. The value they are pointing to can be accessed using the indirection operator*. Indirection through a garbage pointer causes undefined behavior.
+
+# [9.9 - Null pointers](https://www.learncpp.com/cpp-tutorial/null-pointers/)
+
+
