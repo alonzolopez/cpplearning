@@ -427,7 +427,7 @@ int* ptr{ 5 };  // ERROR
 double* dptr{ 0x0012FF7C }; // ERROR
 ```
 
-## The address-of oeprator returns a pointer
+## The address-of operator returns a pointer
 NOTE: the address-of operator& returns a pointer containing the address of the operand whose type is derived from the argument (e.g. taking the address of an int will return the address in an int pointer).
 
 ## Indirection through pointers
@@ -476,5 +476,187 @@ A pointer is just a memory address, and the number of bits needed to access a me
 Pointers are variables that hold a memory address. The value they are pointing to can be accessed using the indirection operator*. Indirection through a garbage pointer causes undefined behavior.
 
 # [9.9 - Null pointers](https://www.learncpp.com/cpp-tutorial/null-pointers/)
+Pointers are not initialized when they are instantiated. Unless a value is assigned, a pointer points to some garbage address by default.
 
+Pointers can point to a null value. A **null value** is a special value that means the pointer is not pointing to anything. A pointer holding a null value is called a **null pointer**.
 
+Assign a pointer to a null value by intializing it or assigning it to 0:
+```cpp
+float* ptr { 0 };   // ptr is a null pointer
+
+float* ptr2;        // ptr2 is uninitialized
+ptr2 = 0;           // ptr2 is now a null pointer
+```
+
+Pointers convert to boolean false if they are null and boolean true if they are non-null, so we can test if they are null using a conditional:
+```cpp
+double* ptr { 0 };
+
+if (ptr)
+    std::cout << "ptr is pointing to a double value\n";
+else
+    std::cout << "ptr is a null pointer\n";
+```
+**Best practice:** initialize your pointers to a null value if you're not giving them another value.
+
+## Indirection through null pointers
+Will likely crash your application because it's trying to access the memory address indicated by a null value.
+
+## The NULL macro
+`NULL` is a special preprocessor macro (defined in <cstddef>) that is commonly used to indicate a null pointer. 
+
+**Best practice:** because NULL is a preprocessor macro with an implementation defined value, avoid using NULL.
+
+## The perils of using 0 (or NULL) for null pointers
+`0` isn't a pointer type, so assigning 0 (or NULL) to a pointer is inconsistent and the compiler may have trouble differentiating between the two types.
+
+## nullptr in C++11
+**Best practice:** use `nullptr` to initialize your pointers to a null value. `nullptr` is a keyword, and C++ will implicitly convert nullptr to any pointer type. You can even pass it into functions expecting a pointer as a parameter.
+
+## std::nullptr_t
+`std::nullptr_t` is a type that can only hold one value: `nullptr`. Use this if you want a function to only accept a nullptr value:
+```cpp
+#include <cstddef>  // for std::nullptr_t
+void doSomething(std::nullptr_t ptr)
+{
+    // ...
+}
+```
+
+# [9.10 - Pointers and arrays](https://www.learncpp.com/cpp-tutorial/pointers-and-arrays/)
+## Array decay
+A fixed array will **decay** (a.k.a. be implicitly converted) into a pointer that points to the first element of the array. However, an array and a pointer to the array are NOT identical. For a fixed array of size 5, the array is of type `int[5]` and its value is the array; a pointer to the array would be of type `int*` and its value is the first element of the array .
+
+Because of this, we can use the pointer to get *the first* value of the array, the value at the memory address held by the pointer.
+
+## Differences between pointers and fixed arrays
+The pointer and fixed array have different size. 
+
+The pointer and fixed array also return different values when using the address-of operator&:
+```cpp
+#include <iostream>
+
+int main()
+{
+    int arr[5] { 5, 4, 3, 2, 1};
+
+    int* ptr { arr };
+
+    std::cout << "The address of the array is " << &arr << '\n';
+    std::cout << "The type of the array is " << typeid(arr).name() << '\n';
+    std::cout << "The pointer is " << ptr << '\n';
+    std::cout << "The type of the pointer is " << typeid(ptr).name() << '\n';
+
+    return 0;
+}
+```
+Outputs:
+```
+The address of the array is 0x7ffc22518630
+The type of the array is A5_i
+The pointer is 0x7ffc22518630
+The type of the pointer is Pi
+```
+
+## Revisiting passing fixed arrays to functions
+A fixed array decays into a pointer when passed as an argument into a function. This happens even if the parameter is declared as a fixed array.
+
+Therefore, the following two function declarations are identical:
+```cpp
+void printSize(int array[]);
+void printSize(int* array);
+```
+
+**Best practice:** favor the pointer syntax (*) over the array syntax ([]) for array function parameters.
+
+## An intro to pass by address
+Using the indirection operator* to modify a the value pointed to by a pointer will modify the *original* value. This is true for arrays and non-array values as well.
+
+## Arrays in structs and classes don't decay
+Arrays that are part of structs or classes DO NOT decay when the whole struct or class is passed to a function. This is a useful way to prevent decay if desired.
+
+# [9.11 - Pointer arithmetic and array indexing](https://www.learncpp.com/cpp-tutorial/pointer-arithmetic-and-array-indexing/)
+## Pointer arithmetic
+C++ allows you to do arithmetic on pointers. `ptr + 1` returns the *memory address of the next object of the type that matches `ptr`*. If ptr is an `int*`, `ptr + 3` returns the memory address of the int  at 3 itnegers after ptr. This increments the memory address of an int (assuming 4 bytes) accordingly:
+```cpp
+#include <iostream>
+ 
+int main()
+{
+    int value{ 7 };
+    int* ptr{ &value };
+ 
+    std::cout << ptr << '\n';
+    std::cout << ptr+1 << '\n';
+    std::cout << ptr+2 << '\n';
+    std::cout << ptr+3 << '\n';
+ 
+    return 0;
+}
+```
+output:
+```
+0012FF7C
+0012FF80
+0012FF84
+0012FF88
+```
+Each increment moves 4 bytes, or one int's space.
+
+## Arrays are laid out sequentially in memory
+Arrays are laid out sequentially in memory, so printing the address of each element with the address-of-operator* like so
+```cpp
+#include <iostream>
+ 
+int main()
+{
+    int array[]{ 9, 7, 5, 3, 1 };
+ 
+    std::cout << "Element 0 is at address: " << &array[0] << '\n';
+    std::cout << "Element 1 is at address: " << &array[1] << '\n';
+    std::cout << "Element 2 is at address: " << &array[2] << '\n';
+    std::cout << "Element 3 is at address: " << &array[3] << '\n';
+ 
+    return 0;
+}
+```
+will print:
+```
+Element 0 is at address: 0041FE9C
+Element 1 is at address: 0041FEA0
+Element 2 is at address: 0041FEA4
+Element 3 is at address: 0041FEA8
+```
+Each address is 4 bytes apart, or the size of an integer (on the author's machine).
+
+## Pointer arithmetic, arrays, and the magic behind indexing
+The compiler translates the subscript operator ([]) into pointer addition and indirection. Generalizing, `array[n]` is equivalent to `*(array + n)` where `n` is an integer. 
+
+For example,
+```cpp
+#include <iostream>
+
+int main()
+{
+    int array[]{ 9, 7, 6, 5, 3};
+
+    // print the memory address of array element 1
+    std::cout << &array[1] << '\n';
+    // print the memory address of array pointer + 1
+    std::cout << array + 1 << '\n';
+
+    // print the value of array element 1
+    std::cout << array[1] << '\n';
+    // print the value at the memory address (pointer + 1)
+    std::cout << *(array + 1) << '\n';
+}
+```
+outputs:
+```
+0x7ffd3946ea94
+0x7ffd3946ea94
+7
+7
+```
+
+## Using a pointer to iterate through an array
