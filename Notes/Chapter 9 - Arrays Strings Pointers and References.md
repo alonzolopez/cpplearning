@@ -660,3 +660,24 @@ outputs:
 ```
 
 ## Using a pointer to iterate through an array
+Though it's not common, you can do this
+```cpp
+int main()
+{
+    char name[]{ "Mollie" };
+    int arrayLength{ static_cast<int>(std::size(name)) };
+    int numVowels{ 0 };
+
+    for (char* ptr{ name }; ptr != (name + arrayLength); ++ptr)
+    {
+        if (isVowel(*ptr))
+        {
+            ++numVowels;
+        }
+    }
+    std::cout << name << " has " << numVowels << " vowels.\n";
+    return 0;
+}
+```
+
+See [quiz 2](../9-projects/9-11-quiz/main.cpp) for an example of iterating through arrays using pointers to find a value.
