@@ -681,3 +681,212 @@ int main()
 ```
 
 See [quiz 2](../9-projects/9-11-quiz/main.cpp) for an example of iterating through arrays using pointers to find a value.
+
+# [9.12 - C-style string symbolic constants](https://www.learncpp.com/cpp-tutorial/c-style-string-symbolic-constants/)
+You may see C-style strings in old code, but new code should favor `std::string` or `std::string_view`.
+
+# [9.13 - Dynamic memory allocation with new and delete](https://www.learncpp.com/cpp-tutorial/dynamic-memory-allocation-with-new-and-delete/)
+**Dynamic memory allocation** is a way for running programs to request memory from the operating system when needed.
+
+## Dynamically allocating single variables
+To allocate a *single* variable dynamicaly, we use the scalar (non-array) form of the **new** operator. The new operator requests enough memory for the specified variable (e.g. int) and creates the object using that memory, then returns a pointer containing *the address* of the memory that has been allocated. We can assign that address to our own pointer variable so we can access the allocated memory later:
+```cpp
+int* ptr{ new int }; // dynamically allocate an int and assign the address to ptr so we can access it later
+*ptr = 7; // assign value of 7 to allocated memory
+```
+
+## How does dynamic memory allocation work?
+
+Unlike static or automatic memory, the program itself can and is responsible for requesting and disposing of dynamically allocated memory. If the OS can fulfill a dynamic memory allocation request, it will return the address of memory to your application.
+
+## Initializing and deleting dynamically allocated variables
+To initialize:
+```cpp
+int* ptr1{ new int(5) }; // direct initialization
+int* ptr2{ new int{ 6 } }; // uniform initialization
+```
+When we are done with a variable, we need to explicitly delete it using the **delete** operator:
+```cpp
+delete ptr1; // return the memory pointed to by ptr to the OS
+ptr = 0; // set ptr to be a null pointer (use nullptr instead of 0)
+```
+Deleting the pointer returns the memory back to the OS. It doesn't modify the scope of the pointer, which is why we set it to nullptr after.
+
+## Dangling pointers
+A pointer that is pointing to deallocated memory is called a **dangling pointer**. Indirection through or deleting a dangling pointer will lead to undefined behavior. Deallocating memory may also create multiple dangling pointers.
+
+For example,
+```cpp
+#include <iostream>
+
+int main()
+{
+    int* ptr{ new int }; // dynamically allocate an int
+    *ptr = 7; // assign a value to that memory
+
+    delete ptr; // return the memory to the OS; ptr is now a dangling pointer
+
+    std::cout << *ptr; // indirection through dangling pointer will cause undefined pointer
+    delete ptr; // trying to deallocate memory again will lead to undefined behavior
+}
+```
+
+And for an example of multiple dangling pointers:
+```cpp
+#include <iostream>
+
+int main()
+{
+    int* ptr{ new int }; // dynamically allocate an int
+    int* otherPtr{ ptr }; // otherPtr is now pointed at the same memory location
+
+    delete ptr; // ptr and otherPtr are now dangling pointers
+    ptr = nullptr; // ptr is now a nullptr
+
+    // but otherPtr is still a dangling pointer!!!
+
+    return 0;
+}
+```
+
+**Best practice:** set deleted pointers to 0 (or nullptr in C++11) unless they are going out of scope immediately afterward.
+
+## Operator new can fail
+If the OS cannot grant a memory request, operator new will fail. The default behavior is to throw a `bad_alloc` exception. If this exception isn't properly handled, the program will terminate (crash) with an unhandled exception error.
+
+We can have new return a null pointer if memory can't be allocated by adding `std::nothrow`:
+```cpp
+int* value = new (std::nothrow) int; // value will be set to a null pointer if the integer allocation fails
+```
+
+We should check all memory requests to ensure they succeed before using the allocated memory:
+```cpp
+int* value{ new (std::nothrow) int{} };
+if (!value)
+{
+    // do error handling here
+    std::cout << "Could not allocate memory";
+}
+```
+
+## Null pointers and dynamic memory allocation
+Null pointers are particularly useful when dealing with dynamic memory allocation. In the context of dynamic memory allocation, a nullptr means "no memory has been allocated to this pointer". This means we can conditionally allocate memory:
+```cpp
+// check that ptr has not been allocated memory; if not, allocate it
+if (!ptr)
+    ptr = new int;
+```
+
+Deleting a null pointer has no effect, so instead of:
+```cpp
+// the following if statement is unnecessary
+if (ptr)
+    delete ptr;
+```
+we can just write:
+```cpp
+delete ptr;
+```
+
+## Memory Leaks
+If a program loses the address to the dynamically allocated memory, then the dynamically allocated memory cannot be deleted. This is called a **memory leak**. This can cause your program to eat up a ton of memory unnecessarily and prevent other programs from using it. 
+
+There are a few ways memory leaks can occur:
+1. A pointer going out of scope
+    ```cpp
+    void doSomething()
+    {
+        int* ptr{ new ptr };
+    } // ptr goes out of scope here and the memory address is lost (cannot be deleted now)
+    ```
+2. Reassigning a pointer holding the address of dynamically allocated memory to another value before deleting the memory and returning it to the OS.
+    ```cpp
+    int value = 5;
+    int* ptr{ new int{} }; // allocate memory
+    ptr = &value; // old address lost = memory leak
+    ```
+    To fix this, delete the pointer before reassigning it:
+    ```cpp
+    int value = 5;
+    int* ptr{ new int{} };  // allocate memory
+    delete ptr; // return memory back to OS
+    ptr = &value; // reassign pointer to address of value
+    ```
+3. Double-allocation of a dynamic memory address to a single pointer
+    ```cpp
+    int* ptr{ new int{} };
+    ptr = new int{}; // old address lost = memory leak
+    ```
+    to avoid this, delete the pointer before the second allocation
+    ```cpp
+    int* ptr{ new int{} };
+    delete ptr;
+    ptr = new int{}; // old address lost = memory leak
+    ```
+
+## Conclusion
+1. Operators `new` and `delete` allow us to dynamically allocate single variables for our programs.
+2. Dynamically allocated memory has dynamic duration and will stay allocated until you deallocate it or your program terminates.
+3. Be careful not to perform indirection through dangling or null pointers.
+
+# [9.14 - Dynamically allocating arrays](https://www.learncpp.com/cpp-tutorial/dynamically-allocating-arrays/)
+
+We can dynamically allocate an array using `new[]` and `delete[]`. 
+```cpp
+#include <iostream>
+#include <cstddef> // std::size_t
+
+int main()
+{
+    std::cout << "Enter a positive integer";
+    std::size_t length{};
+    std::cin >> length;
+
+    int* array{ new int[length]{} }; // use array new; we must use type std::size_t for length
+
+    std::cout << "I just allocated an array of integers length " << length << '\n';
+
+    array[0] = 5; // set element zero to 5
+
+    delete[] array; // use array delete to deallocate array
+
+    // we don't set array to nullptr here because it's going to go out of scope anyways
+
+    return 0;
+}
+```
+
+If we didn't use `std::size_t` as the type for length but instead int, we could static_cast it:
+```cpp
+int length{};
+std::cin >> length;
+int* array{ new int[static_cast<std::size_t>(length)]{} };
+```
+
+## Dynamically Deleting Arrays
+Use `delete[]` not `delete` when deleting dynamically-allocated arrays. Using `delete` causes undefined behavior.
+
+## Initializing dynamically allocated arrays
+To initialize a dynamically-allocated array to zero:
+```cpp
+int* array{ new int[length]{} };
+```
+
+As of C++11, you can initialize dynamic arrays using initializer lists
+```cpp
+int fixedArray[5] = { 9, 7, 5, 3, 1 };
+int* array{ new int[5]{9, 7, 5, 3, 1 } }; // initialize a dynamic array using list initialization
+
+// we can also use the auto keyword to avoid writing the type twice
+auto* array{ new int[5]{9, 7, 5, 3, 1 }};
+```
+
+For an example, see [main.cpp](../9-projects/9-14-1/main.cpp)
+
+## Resizing arrays
+Don't use dynamically-allocated arrays to do this yourself. Use `std::vector` which will be introduced shortly.
+
+## Quiz
+The [quiz](../9-projects/9-14-quiz/main.cpp) is a great example of dynamically-allocated arrays based on user input.
+
+# [9.15 - Pointers and const](https://www.learncpp.com/cpp-tutorial/pointers-and-const/)
