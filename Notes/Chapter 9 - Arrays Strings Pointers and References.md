@@ -890,3 +890,953 @@ Don't use dynamically-allocated arrays to do this yourself. Use `std::vector` wh
 The [quiz](../9-projects/9-14-quiz/main.cpp) is a great example of dynamically-allocated arrays based on user input.
 
 # [9.15 - Pointers and const](https://www.learncpp.com/cpp-tutorial/pointers-and-const/)
+## Pointer to const value
+We can't set a non-const pointer to a const variable. To declare a **pointer to a const value**, use the `const` keyword before the data type:
+```cpp
+const int value{ 5 };
+const int* ptr{ &value }; // pointer to a const value
+*ptr = 6; // ERROR, can't change the value of the const variable through indirection
+```
+
+A pointer to a constant variable can also point to a non-constant variable:
+```cpp
+int value{ 5 };
+const int* ptr{ &value };
+// value cannot be changed through the pointer
+value = 6; // value is non-const when accessed through the identifier
+```
+
+The pointer to a const value is not const itself, so it can be redirected to point at other values:
+```cpp
+int value1{ 5 };
+const int* ptr{ &value1 }; // point to address of value1
+
+int value2{ 6 };
+ptr = &value2; // redirect to point to address of value2
+```
+
+## Const pointers
+A **const pointer** is a pointer whose value (memory address) cannot be changed after initialization. You can still change the value stored at that memory address through indirection. 
+
+To declare a const pointer, use the const keyword between the asterisk and the pointer name. Like all const variables, the pointer must be initialized to a value upon declaration:
+```cpp
+int value{ 5 }; // non-const value
+int* const ptr{ &value };
+*ptr = 6; // okay, can change the value stored because it's non-const
+
+int value2{ 8 };
+ptr = &value2; // ERROR, the pointer is const, cant change the address it points to
+```
+
+## Const pointer to a const value
+To declare a const pointer to a const value (i.e. neither the pointer address nor the value pointed to can be changed), use the const keyword before the type AND after the asterisk.
+```cpp
+int value{ 5 };
+const int* const ptr{ &value };
+```
+
+# Recap
+Here are four notes:
+1. A non-const pointer can be redirected to point to other addresses.
+2. A const pointer always points to the same address; this address cannot be changed.
+3. A pointer to a non-const value can change the value it is pointing to. These CAN NOT point to a const value.
+4. A pointer to a const value treats the value as const (even if it is non-const), and thus cannot change the value.
+
+
+Pointers to const variables are primarily used in function parameters (e.g. passing arrays in) to help ensure the function doesn't inadvertently modify the parameter.
+
+# [9.16 - Reference Variables](https://www.learncpp.com/cpp-tutorial/references/)
+There are three basic variable types:
+1. Normal variables which hold values directly
+2. Pointers which hold the address of another value (or null) and the value pointed to can be retrieved through indirection
+3. **References** that act as an alias to another object or value
+
+There are three types of references:
+1. References to non-const values (*references* or *non-const references*)
+2. References to const values (const references)
+3. r-value references (covered later)
+
+## References to non-const values
+A reference to a non-const value (a.k.a. a *reference* for short) is declared using an ampersand between the reference type and the variable name. In this context, ampersand does not mean "address of", it means "reference to".
+```cpp
+int value{ 5 };
+int& ref1{ value }; // best practice syntax with the ampersand next to the type
+```
+
+## References as aliases
+References generally act as aliases for the values they're referencing. For example,
+```cpp
+#include <iostream>
+
+int main()
+{
+    int value{ 5 };
+    int& ref{ value };
+    int& ref2{ value };
+
+    std::cout << "Value is: " << value << '\n';
+
+    value = 6;
+
+    std::cout << "Value is: " << value << '\n';
+
+    ref = 7;
+
+    std::cout << "Value is: " << value << '\n';
+
+    ref2 = 8;
+
+    std::cout << "Value is: " << value << '\n';
+
+    ++ref;
+
+    std::cout << "Value is: " << value << '\n';
+
+    std::cout << "The address of value is " << &value << '\n';
+    std::cout << "The address of ref is " << &ref << '\n'; // the same address as value
+    std::cout << "The address of ref2 is " << &ref2 << '\n'; // the same address as value
+
+    return 0;
+}
+```
+
+which outputs:
+```
+Value is: 5
+Value is: 6
+Value is: 7
+Value is: 8
+Value is: 9
+The address of value is 0x7ffc5eb92a34
+The address of ref is 0x7ffc5eb92a34
+The address of ref2 is 0x7ffc5eb92a34
+```
+
+## l-values and r-values
+**l-values** are values that have an address in memory. They are the only values that can be on the left-hand-side of an assignment statement.
+
+**r-values** are expressions that are not l-values (do not have an address in memory) (e.g. literals or expresions like `x + 2`).
+
+Note: const variables are considered non-modifiable l-values.
+
+## References must be initialized
+References must be initialized when created. There is no such thing as a null reference. References to non-const values can only be initialized with *non-const l-values*. They cannot be initialized with const l-values or r-values.
+```cpp
+// Good example
+int x{ 5 };
+int& ref1{ x }; // x is a non-const l-value
+
+// BAD example
+const int y{ 7 };
+int& ref2{ y }; // not okay, y is a const l-value
+
+// BAD example
+int& ref3{ 6 }; // not okay, 6 is an r-value
+```
+
+## References cannot be reassigned
+```cpp
+int value1{ 5 };
+int value2{ 6 };
+
+int& ref{ value1 };
+ref = value2; // DOES NOT reassign the ref to value2, it assigns the value of value2 to value1 !!!
+```
+
+## References as function parameters
+References are often used as function parameters. When passing a reference to a variable as a function parameter, no copy is made. This means better performance. 
+
+Similar to pointers references allow the function to directly modify the argument passed in.
+
+**Best practice:** pass arguments by non-const reference (rather than by pointer) when the argument needs to be modified by the function.
+
+Note that the variable passed in does not need to be a reference itself. However, the parameter passed in must be a non-const l-value. This can be restrictive.
+
+```cpp
+#include <iostream>
+
+void changeN(int& ref)
+{
+    ref = 6;
+}
+
+int main()
+{
+    int n{ 5 };
+
+    std::cout << n << '\n';
+
+    changeN(n); // note that n does not need to be a reference
+
+    std::cout << n << '\n';
+
+    return 0;
+}
+```
+
+
+## Using references to pass C-style arrays to functions
+C-style arrays usually decay to pointers when passed into functions as parameters, but this does not happen when passed by reference. Here's an example:
+```cpp
+#include <iostream>
+#include <iterator>
+
+// NOTE: you need to specify the array size in the function declaration
+void printElements(int (&arr)[4])
+{
+    // we can now get the length of the array since it won't decay to a pointer when passed by ref
+    int length{ static_cast<int>(sizeof(arr) / sizeof(arr[0])) };
+
+    for (int i{ 0 }; i < length; ++i)
+    {
+        std::cout << arr[i] << '\n';
+    }
+}
+
+int main()
+{
+    int arr[]{ 99, 20, 14, 80 };
+
+    printElements(arr);
+
+    return 0;
+}
+```
+
+## References as shortcuts
+References can also be used as shortcuts. For example, when accessing a struct member:
+```cpp
+int& ref{ other.something.value1 };
+// the following are equivalent statements
+ref = 6;
+other.something.value1 = 6;
+```
+
+## References vs pointers
+References act like pointers that implicitly perform indirection when accessed (this is how most compilers implement references).
+
+```cpp
+int value{ 5 };
+int* const ptr{ &value }; // const pointer
+int& ref{ value };
+
+// the following are equivalent statements
+*ptr = 5;
+ref = 5;
+```
+
+References are generally much safer to use than pointers but limited in functionality.
+
+**Best practice:** if a task can be accomplished by either a reference or pointer, prefer references.
+
+## Summary
+* References allow us to define aliases to other objects or values. 
+* References to non-const values can only be initialized with non-const l-values. 
+* References can not be reassigned once initialized.
+
+References are most often used as function parameters when we either want to modify the value of the argument or avoid making an expensive copy of the argument.
+
+# [9.17 - References and const](https://www.learncpp.com/cpp-tutorial/references-and-const/)
+You can declare a reference to a const value similar to how you declare a pointer to a const value:
+```cpp
+const int value{ 5 };
+const int &ref{ value }; // ref to a const value
+```
+A reference to a const value is called a **const reference** for short, though this nomenclature is DIFFERENT than that of pointers.
+
+## References to r-values extend the lifetime of the referenced value
+Normally, r-values have expression scope, meaning they are destroyed at the end of the expression in which they are created. However, when a reference to a const value is initialized with an r-value, the lifetime of the r-value is extended to match the lifetime of the reference.
+
+```cpp
+int somefcn()
+{
+    const int& ref{ 2 + 3 }; // normally the result of 2+3 has expression scope and is destroyed at the end of this statement
+    // but because the result is now bound to a reference to a const value...
+    std::cout << ref << '\n'; // we can use it here
+} // and the lifetime of the r-value is extended to here, when the const reference dies
+```
+
+## Const references as function parameters
+References used as function parameters can also be const. A few notes:
+* the function can access the argument without making a copy of it
+* the function is guaranteed to not change the value being referenced
+* references to const values allow you to pass in a non-const l-value, a const l-value, a literal r-value, or an expression (r-value). They are *versatile*.
+
+**Best practice:** pass non-pointer, non-fundamental data type variables (e.g. structs) by (const) reference, unless you know that passing it by value is faster (e.g. std::string_view, int, double, etc).
+
+Some examples:
+```cpp
+#include <iostream>
+ 
+void printIt(const int& x)
+{
+    std::cout << x;
+}
+ 
+int main()
+{
+    int a{ 1 };
+    printIt(a); // non-const l-value
+ 
+    const int b{ 2 };
+    printIt(b); // const l-value
+ 
+    printIt(3); // literal r-value
+ 
+    printIt(2+b); // expression r-value
+ 
+    return 0;
+}
+```
+
+Or from kinova-aero, the write function takes in time and period as references to a const value so it does not modify them:
+```cpp
+void HardwareInterface::write(const ros::Time& time, const ros::Duration& period){
+	position_joint_soft_limits_interface_.enforceLimits(period);
+	kinova_driver_->writeJointCommand(joint_positions_command_, gripper_position_command_);
+}
+```
+
+# [9.18 - Member selection with pointers and references](https://www.learncpp.com/cpp-tutorial/member-selection-with-pointers-and-references/)
+To access members through references, use the **member selection operator (.)**.
+To access members through pointers, use the **arrow operator (->)**. The arrow operator does the same thing as an indirection followed by the .member selection operator.
+
+For an example of all this:
+```cpp
+struct Person
+{
+    int age{};
+    double weight{};
+};
+
+Person person{};
+
+// member selection using actual struct variable directly
+person.age = 5;
+
+// member selection using a reference to the struct
+Person& ref{ person };
+ref.age = 6;
+
+// member selection using pointer to struct
+Person* ptr{ &person };
+person->age = 5;
+// the below is equivalent to the line above but DO NOT use this
+(*ptr).age = 5; // DON'T USE THIS, use -> instead
+```
+
+There are cases when `->` and `.` can be mixed:
+```cpp
+#include <iostream>
+#include <string>
+ 
+struct Paw
+{
+    int claws{};
+};
+ 
+struct Animal
+{
+    std::string name{};
+    Paw paw{};
+};
+ 
+int main()
+{
+    Animal puma{ "Puma", { 5 } };
+ 
+    Animal* pointy{ &puma };
+ 
+    // pointy is a pointer, use ->
+    // paw is not a pointer, use .
+    std::cout << pointy->paw.claws << '\n';
+ 
+    return 0;
+}
+```
+
+# [9.19 - For-each loops](https://www.learncpp.com/cpp-tutorial/for-each-loops/)
+## For-each loops
+A simpler and safer type of loop is the **for-each** loop (a.k.a. a **range-based for-loop**) for cases where we want to iterate through every element in an array (or other list-type structure).
+
+The basic syntax looks like:
+```cpp
+for (element_declaration : array)
+    statement;
+```
+
+The loop will iterate through each element in the array, assigning the value of the current array element to the variable declared in element_declaration. element_declaration shoud have the same type as the array elements, otherwise type conversion will occur.
+
+An example:
+```cpp
+#include <iostream>
+
+int main()
+{
+    constexpr int fibonacci[]{ 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+
+    for (int number : fibonacci) // iterate over array fibonacci
+    {
+        std::cout << number << ' ';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+```
+prints:
+```
+0 1 1 2 3 5 8 13 21 34 55 89 
+```
+
+Because the type of `element_declaration` should match the array elements, this is a perfect use-case for the `auto` keyword so C++ can deduce the type.
+```cpp
+#include <iostream>
+
+int main()
+{
+    constexpr int fibonacci[]{ 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+
+    for (auto number : fibonacci) // iterate over array fibonacci
+    {
+        std::cout << number << ' ';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+```
+
+## For-each loops and references
+Normally, each array element is *copied* into the `element_declaration` variable. But we can take it by reference, which means:
+* we can avoid making a copy (sometime more performant)
+* modify the value directly!!!
+* make it a const reference if we don't want to modify it.
+
+**Best practice:** in for-each loops element declarations, if your elements are non-fundamental types, use references or const refernces for performance reasons.
+
+An example with both a reference that modifies the original array and a const reference:
+```cpp
+#include <iostream>
+
+int main()
+{
+    int array[]{ 1, 3, 5, 7, 9 };
+
+    for (auto& element : array)
+    {
+        element = element + 1;
+    }
+
+    for (const auto& element: array)
+    {
+        std::cout << element << ' ';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+```
+
+## For-each loops and non-arrays
+For-each loops also work with other list-like structures like vectors (std::vector), linked lists, trees, and maps.
+
+## For-each doesn't work with pointers to an array
+Because for-each needs to know how big the array is, which means knowing the array size. But arrays that have decayed to a pointer do not know their size!
+```cpp
+#include <iostream>
+ 
+int sumArray(const int array[]) // array is a pointer
+{
+    int sum{ 0 };
+ 
+    for (auto number : array) // compile error, the size of array isn't known
+    {
+        sum += number;
+    }
+ 
+    return sum;   
+}
+ 
+int main()
+{
+     constexpr int array[]{ 9, 7, 5, 3, 1 };
+ 
+     std::cout << sumArray(array) << '\n'; // array decays into a pointer here
+ 
+     return 0;
+}
+```
+Dynamic arrays DO NOT work with for-each loops for the same reason.
+
+## Can I get the index of the current element?
+For-each loops DO NOT provide a direct way to get the array index of the current element, but starting in C++20 you can add an *init-statement* to your range-based for-each loop to add a counter to increment yourself. The format is:
+```cpp
+for (init-statement; element_declaration : array)
+    statement;
+```
+## Conclusion
+For-each loops should be preferred over normal for loops when possible.
+
+See [quiz 2](../9-projects/9-19-quiz/main.cpp) for an example.
+
+# [9.20 - Void pointers](https://www.learncpp.com/cpp-tutorial/void-pointers/)
+The **void pointer** (a.k.a. **generic pointer**) is a special type of pointer that can point to objects of any data type.
+
+```cpp
+void* ptr; // a void pointer
+```
+
+Because a void pointer doesn't know what object type it's pointing to, indirection through it is impossible. It must first be explicitly cast to another pointer type before indirecting through the new pointer. It's up to the programmer to know what to cast it to.
+
+An example:
+```cpp
+#include <iostream>
+ 
+enum class Type
+{
+    INT,
+    FLOAT,
+    CSTRING
+};
+ 
+void printValue(void *ptr, Type type)
+{
+    switch (type)
+    {
+        case Type::INT:
+            std::cout << *static_cast<int*>(ptr) << '\n'; // cast to int pointer and perform indirection
+            break;
+        case Type::FLOAT:
+            std::cout << *static_cast<float*>(ptr) << '\n'; // cast to float pointer and perform indirection
+            break;
+        case Type::CSTRING:
+            std::cout << static_cast<char*>(ptr) << '\n'; // cast to char pointer (no indirection)
+            // std::cout knows to treat char* as a C-style string
+            // if we were to perform indirection through the result, then we'd just print the single char that ptr is pointing to
+            break;
+    }
+}
+ 
+int main()
+{
+    int nValue{ 5 };
+    float fValue{ 7.5f };
+    char szValue[]{ "Mollie" };
+ 
+    printValue(&nValue, Type::INT);
+    printValue(&fValue, Type::FLOAT);
+    printValue(szValue, Type::CSTRING);
+ 
+    return 0;
+}
+```
+
+## Void pointer miscellany
+* Void pointers can be set to a null value 
+    ```cpp
+    void* ptr{ nullptr };
+    ```
+* Avoid deleting a void pointer that points to dynamically allocated memory.
+* It's not possible to do pointer arithmetic on a void pointer (the pointer needs to know what size and type object it's pointing to)
+* There is no such thing as a void reference.
+
+## Conclusion
+Avoid using void pointers unless it's absolutely necessary. They effectively allow you to avoid type checking. There are other C++ language features that fill the role of void pointers but also include type checking (e.g. function overloading).
+
+# [9.21 - Pointers to pointers and dynamic multidimensional arrays](https://www.learncpp.com/cpp-tutorial/pointers-to-pointers/)
+## Pointers to pointers
+A **pointer to a pointer** holds the address of another pointer.
+
+```cpp
+int value{ 5 };
+
+// a normal pointer
+int* ptr{ &value };
+
+// a pointer to a pointer
+int** ptrptr{ &ptr };
+std::cout << **ptrptr; // use a double asterisk for indirection
+```
+
+Note: the address-of operator requires an l-value, but &value is an r-value, so we CANNOT directly set the pointer to a pointer equal to the address of value through a double ampersand.
+```cpp
+int value = 5;
+int** ptrptr = &&value; // ERROR!!! double ampersand doesn't work here.
+```
+
+## Arrays of pointers
+One of the most common uses of pointers to pointers is to dynamically allocate an array of pointers:
+```cpp
+int** array = new int*[10]; // allocate an array of 10 pointers
+```
+
+## Two-dimensional dynamically allocated arrays
+This is complicated. Reread this section when implementing.
+
+## Conclusion
+**Recommendation:** avoid using pointers to pointers unless no other options are available.
+
+# [9.22 - An introduction to std::array](https://www.learncpp.com/cpp-tutorial/an-introduction-to-stdarray/)
+`std::array` provides a *fixed array functionality* that *won't decay* when passed into a function. 
+
+See below for an example of declaring and initializing an std::array
+```cpp
+#include <array>
+
+std::array<int, 3> myArray; // declare an integer array with length 3
+std::array<int, 5> myArray2{ 9, 7, 5, 3, 1 }; // list initialization
+std::array<int, 5> myArray3 = { 10, 4, 2, 6, 8}; // initializer list
+```
+
+You cannot omit the type or length in C++14.
+
+You can also assign values using an initializer list:
+```cpp
+std::array<int, 5> myArray;
+myArray = { 1, 2, 3, 4, 5 };
+myArray = {9, 8, 7}; // also okay; elements 3 and 4 are set to zero
+```
+
+std::array supports a second form of element access using the `.at()` function that does bounds checking (and throws an error if the requested index is out of bounds). Because it does bounds checking, it is slower but safer.
+
+std::array cleans up after itself when it goes out of scope, so there's no need to do any kind of manual cleanup.
+
+## Size and sorting
+A couple cool features of std::array
+* you can use the `size()` function to get the length of the std::array
+* you can even use `size()` from within a function because it doesn't decay to a pointer
+* you can sort it with `std::sort()`
+
+**Best practice:** when passing an std::array to a function, pass it by reference as done below.
+
+For an example of all this:
+
+```cpp
+#include <iostream>
+#include <array>
+#include <algorithm>
+
+void printArray(const std::array<double, 5> &arr)
+{
+    // pass arr by reference to avoid making a copy
+    std::cout << "length: " << arr.size() << '\n';
+
+    for (double element : arr)
+    {
+        // the for-each loop works with std::array because it doesn't decay to a pointer
+        std::cout << element << ' ';
+    }
+
+    std::cout << '\n';
+}
+
+int main()
+{
+    std::array<double, 5> myArray{ 1.0, 5.7, 9.0, 2.0, 0.1 };
+
+    std::sort(myArray.begin(), myArray.end());
+
+    printArray(myArray);
+
+    return 0;
+}
+```
+
+## Passing std::array of different lengths to a function
+The type and size of an std::array passed into the function *must* match the function declaration. To handle different std::array sizes and types, we have to have a declaration for each size and type combo. Instead of declaring and defining each manually, we can use templates.
+```cpp
+#include <array>
+#include <cstdef>
+#include <iostream>
+ 
+// printArray is a template function
+template <class T, std::size_t size> // parameterize the element type and size
+void printArray(const std::array<T, size>& myArray)
+{
+    for (auto element : myArray)
+        std::cout << element << ' ';
+    std::cout << '\n';
+}
+ 
+int main()
+{
+    std::array myArray5{ 9.0, 7.2, 5.4, 3.6, 1.8 };
+    printArray(myArray5);
+ 
+    std::array myArray7{ 9.0, 7.2, 5.4, 3.6, 1.8, 1.2, 0.7 };
+    printArray(myArray7);
+ 
+    return 0;
+}
+```
+
+## Manually indexing std::array via size_type
+`size()` returns a type called `size_type` which is an *unsigned integral* type. The full prefix for this type is
+```cpp
+std::array<int, 5>::size_type
+```
+but fortunately, this is an alias for `std::size_t`
+
+To iterate forwards through an std::array:
+```cpp
+#include <array>
+#include <iostream>
+#include <cstddef> // std::size_t
+
+int main()
+{
+    std::array<int, 5> myArray { 7, 3, 1, 9, 5 };
+
+    for (std::size_t i{ 0 }; i < myArray.size(); ++i)
+    {
+        std::cout << myArray[i] << ' ';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+```
+
+To iterate in reverse order, see below. Note that because the iterator is an unsigned type, the decrement has to happen in the conditional and takes the form `i--` to return a copy of the current value and then decrement.
+```cpp
+#include <array>
+#include <iostream>
+
+int main()
+{
+    std::array myArray { 7, 3, 1, 9, 5 };
+
+    for (auto i{ myArray.size() }; i-- > 0; )
+    {
+        // we use auto for the iterator type because we don't initialize to zero
+        // we decrement in the conditional
+        std::cout << myArray[i] << ' ';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+```
+
+**Best practice:** avoid manual indexing of std::array by instead using range-based for loops or iterators if possible.
+
+## Array of struct
+To initialize an array of struct:
+```cpp
+#include <array>
+#include <iostream>
+
+struct House
+{
+    int number{};
+    int stories{};
+    int roomsPerStory{};
+};
+
+struct Array
+{
+    House value[3]{};
+};
+
+int main()
+{
+    Array houses{
+        { {13, 4, 30}, {14, 5, 31}, {15, 6, 32} }
+    };
+
+    // Alternative, more manual method:
+    // houses[0] = {13, 4, 30};
+    // houses[1] = {14, 5, 31};
+    // houses[2] = {15, 6, 32};
+
+    for (const auto& house : houses.value)
+    {
+        std::cout   << "House number " << house.number
+                    << " has " << (house.stories * house.roomsPerStory)
+                    << " rooms\n";
+    }
+    
+    return 0;
+}
+```
+
+**Recommendation:** use std::array over built-in fixed arrays for any non-trivial array use.
+
+# [9.23 - An introduction to std::vector](https://www.learncpp.com/cpp-tutorial/an-introduction-to-stdvector/)
+std::vector provides functionality that makes working with dynamic arrays safer and easier.
+
+## An introduction to std::vector
+std::vector provides dynamic array functionality that handles its own memory management. This means:
+* you can create arrays that have their length set at runtime
+* you DO NOT have to worry about allocating and deallocating memory using `new` and `delete`
+
+```cpp
+#include <vector>
+
+// declaration
+std::vector<int> array; // no need to specify length at declaration
+
+// initialization
+std::vector<int> array2{ 9, 7, 5, 3, 1 };
+
+// assignment
+array = { 0, 2, 4, 6 }; // array length is now 4
+array = { 0, 5, 3 }; // array length is now 3
+
+// accessing elements
+array[2] = 9;       // no bounds checking
+array.at(1) = 8;    // does bounds checking
+```
+
+## Self-cleanup prevents memory leaks
+std::vector automatically deallocates the memory it controls. This avoids memory leaks and is much safer than doing your own memory allocation.
+
+## Vectors remember their length
+Just like std::array, std::vector objects keep track of their length and can be accessed via the `size()` function. Just like with std::array, `size()` returns a value of `std::vector<type>::size_type` (e.g. `std::vector<int>::size_type`) which is an unsigned integer.
+
+## Resizing a vector
+You can resize a vector to be larger or smaller very easily.
+
+Resizing to be larger:
+```cpp
+#include <iostream>
+#include <vector>
+
+int main()
+{
+    std::vector array{ 0, 1, 2 };
+    array.resize(5); // set size to 5
+
+    std::cout << "The length is: " << array.size() << '\n';
+
+    for (int i : array)
+    {
+        std::cout << i << ' ';
+    }
+    std::cout << '\n';
+
+    return 0;
+}
+```
+The extra new elements are initialized to zero. This prints:
+```
+The length is: 5
+0 1 2 0 0
+```
+
+To resize smaller:
+```cpp
+#include <iostream>
+#include <vector>
+
+int main()
+{
+    std::vector array{ 0, 1, 2, 3, 4 };
+    array.resize(3); // set size to 3
+
+    std::cout << "The length is: " << array.size() << '\n';
+
+    for (int i : array)
+    {
+        std::cout << i << ' ';
+    }
+    std::cout << '\n';
+
+    return 0;
+}
+```
+
+This prints:
+```
+The length is: 3
+0 1 2
+```
+
+Resizing a vector is computationally expensive, so do it sparingly.
+
+To zero-initialize a vector for which you know the size, use *direct initialization*
+```cpp
+#include <iostream>
+#include <vector>
+
+int main()
+{
+    // direct initialization creates a zero-initialized vector
+    // here with length 5
+    std::vector<int> array(5);
+
+    std::cout << "The length is: " << array.size() << '\n';
+
+    for (int i : array)
+    {
+        std::cout << i << ' ';
+    }
+
+    std::cout << '\n';
+
+    return 0;
+}
+```
+
+## Conclusion
+**Recommendation:** use std::vector in most cases where dynamic arrays are needed because it handles its own memory management, remembers its length, and can be easily resized.
+
+# [9.24 - Introduction to iterators](https://www.learncpp.com/cpp-tutorial/introduction-to-iterators/)
+## Iterators
+An **iterator** is an object designed to traverse through a container (e.g. the values in an array or the characters in a string), providing access to each element along the way.
+
+They give us a consistent method to iterate through a wide variety of container types.
+
+## Standard library iterators
+There are several types of standard library iterators. Don't worry about the types for now, all we need are four things: 1) the begin point, 2) the end point, 3) operator++ to increment, 4) operator* to get the value of the current element.
+
+To get the begin and end points:
+```cpp
+#include <array>
+#include <iterator>
+#include <iostream>
+
+int main()
+{
+    std::array<int, 3> array{ 1, 2, 3 };
+
+    // begin point
+    auto begin{ array.begin() };      // container function
+    auto begin2{ std::begin(array) }; // standard library generic function
+
+    std::cout << begin << '\n';     // these both print the same address
+    std::cout << begin2 << '\n';    // these both print the same address
+
+    // end point
+    auto end{ array.end() };    // container function
+    auto end2{ std::end(array)}; // standard libary generic function
+
+    std::cout << end << '\n';   // these both print the same address
+    std::cout << end << '\n';   // these both print the same address
+
+    return 0;
+}
+```
+
+## Back to range-based for loops
+Range-based for loops can be used with all types that have begin and end member functions or can be used with std::begin and std::end.
+
+You can add these begin and end member functions to your own types later so the can be usable with range-based for loops.
+
+## Iterator invalidation (dangling iterators)
+Iterators can be left "dangling" if the elements being iterated over change address or are destroyed. When this happens, we say the iterator has been **invalidated**. Accessing invalidated iterators causes undefined behavior.
+
+Good documentation notes which container operations will invalidate iterators.
+
+# [9.25 - Introduction to standard library algorithms](https://www.learncpp.com/cpp-tutorial/introduction-to-standard-library-algorithms/)
+Use 'em if you can to avoid writing your own.
+
+**Best practice:** unless otherwise specified, do not assume that the standard library algorithms will execute in a particular sequence. std::for_each, std::copy, std::copy_backward, std::move, and std::move_backward have sequential guarantees.
+
+# [Chapter 9 Summary](https://www.learncpp.com/cpp-tutorial/chapter-9-comprehensive-quiz/)
