@@ -1840,3 +1840,5 @@ Use 'em if you can to avoid writing your own.
 **Best practice:** unless otherwise specified, do not assume that the standard library algorithms will execute in a particular sequence. std::for_each, std::copy, std::copy_backward, std::move, and std::move_backward have sequential guarantees.
 
 # [Chapter 9 Summary](https://www.learncpp.com/cpp-tutorial/chapter-9-comprehensive-quiz/)
+
+A great example of a lot of the concepts in action: [quiz 6](../9-projects/quiz-6/main.cpp) was my first take before seeing the answers and [quiz 6 version 2](../9-projects/quiz-6-2/main.cpp) was my second take after seeing the answers and taking some of their suggestions, namely with type aliases.
