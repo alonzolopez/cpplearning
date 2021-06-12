@@ -73,7 +73,7 @@ void printDeck(const deck_type &deck)
 
 void shuffleDeck(deck_type &deck)
 {
-    // mt is static so it only gets seeded once
+    // mt is static so it only gets seeded once. this gives it file scope
     static std::mt19937 mt{ static_cast<std::mt19937::result_type>(std::time(nullptr)) };
     std::shuffle(deck.begin(), deck.end(), mt);
 }
