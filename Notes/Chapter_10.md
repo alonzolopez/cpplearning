@@ -1,3 +1,5 @@
+# Chapter 10 - Arrays, Strings, Pointers, and References
+F.K.A. Chapter 9 as noted below in the section headers.
 # [9.1 - Arrays (Part I)](https://www.learncpp.com/cpp-tutorial/arrays-part-i/)
 An **array** is an aggregate data type that lets us access many variables of the same type through a single identifier.
 
