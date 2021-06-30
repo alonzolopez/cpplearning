@@ -566,3 +566,320 @@ stack.reserve(5); // set the capacity to at least 5
 Vectors may allocate extra capacity for breathing room. If, when, and how much additional memory is allocated is left up to the compiler implementer.
 
 ## [**11.10 - Recursion**](https://www.learncpp.com/cpp-tutorial/recursion/)
+A **recursive function** is a function that calls itself.
+
+### **Recursive termination conditions**
+A **recursive termination** is a condition that, when met, will cause the recursive function to stop calling itself. These must be included to avoid infinite recursion and stack overflow.
+
+### **Memoization algorithms**
+The simple fibonacci sequence implementation is not efficient. You can rewrite algorithms to be more efficient and reduce the number of recursive calls necessary. 
+
+One technique called **memoization** caches the results of the expensive function calls so they can be used when the same input occurs again.
+
+### **Recursive vs iterative**
+**Rule:** generally favor iteration over recursion, except when recursion really makes sense.
+
+You can implement every instance of recursion using iteration instead. Recursion comes with a slight performance cost compared to iterative implementations. But recursion may be easier to implement and read.
+
+Favor recursion when most of the following are true:
+* The recursive code is easier to implement.
+* The recursion depth can be limited (e.g. there's no way to provide an input that will recurse down 100,000 levels and cause a stack overflow).
+* The iterative version of the algorithm requires managing a stack of data.
+* This isn't a performance-critical section of code.
+
+## **Command line arguments**
+**Command line arguments** are optional string arguments that are passed by the OS to the program when it is launched. The program can then use them as input or ignore them.
+
+### **Using command line arguments**
+To pass in command line arguments, we'll need to use a new form of main:
+```cpp
+int main(int argc, char *argv[])
+```
+
+Think of **argc** as argument count. This will always be at least 1 because the first argument is the name of the program itself. Every other subsequent argument causes argc to increase by 1.
+
+This of **argv** as argument values, though the proper name is argument vectors. It's an array of C-style strings. The length of the array is argc.
+
+[MyArgs.cpp](../11-projects/11-11-1/MyArgs.cpp) is a short program that prints out all the arguments to a file.
+
+### **Dealing with numeric arguments**
+Command line arguments are passed in as strings, so to use them as a number, you have to convert them from a string to a number. To do that, use `std::stringstream`. For an example, see [IntArgs.cpp](../11-projects/11-11-2/IntArgs.cpp0).
+
+### **The OS parses command line arguments first**
+* Command line inputs are separated by spaces
+* Use double quotes to pass in a string with spaces. e.g.
+    ```
+    MyArgs "Hello world!"
+    ```
+    prints
+    ```
+    There are 2 arguments:
+    0 C:\MyArgs
+    1 Hello world!
+    ```
+* To include a literal double quote, use a \ before the "
+    ```
+    MyArgs /"Hello world!/"
+    ```
+    prints
+    ```
+    There are 3 arguments:
+    0 C:\MyArgs
+    1 "Hello
+    2 world!"
+    ```
+
+## [**11.12 - Ellipses (and why to avoid them)**](https://www.learncpp.com/cpp-tutorial/ellipsis-and-why-to-avoid-them/)
+Ellipses bypass type checking making them dangerous. Avoid using them.
+## [**11.13 - Introduction to lambdas (anonymous functions)**](https://www.learncpp.com/cpp-tutorial/introduction-to-lambdas-anonymous-functions/)
+### **Lambdas to the rescue**
+A **lambda expression** (a.k.a. **lambda** or **closure**) allows us to define an anonymous function inside another function.
+
+This lets us:
+* avoid namespacing pollution and defining a new function
+* define a function as close to its use as possible
+
+The syntax for lambdas is:
+```cpp
+[ captureClase ]( parameters ) -> returnType
+{
+    // statements;
+}
+```
+The captureClause and parameters can both be empty if they are not needed. If no returnType is provided, `auto` will be assumed (thus using type inference to determine the return type, which is okay for these trivial functions).
+
+Here is a lambda function that finds the string "nut":
+```cpp
+[](std::string_view str)
+{
+    return (str.find("nut") != std::string_view::npos);
+}
+```
+
+### **Type of a lambda**
+Defining a lambda right where it is needed is called a **function literal**. 
+
+As opposed to using a funciton literal, defining and using a named lambda with a good function name can make code easier to read.
+
+Lambdas don't have a type that we can explicitly use. The compiler generates a unique type for each lambda that is not exposed to us. Lambdas are actually a special object called a functor that has overloaded operator() so we can call it like a function.
+
+There are several ways of storing a lambda for use post-definition. Here we show how to do it using function pointers, then std::function, then using auto to store it using its actual type.
+```cpp
+#include <functional>
+
+int main()
+{
+    // method #1: a regular function pointer
+    // only works with an empty capture clause
+    double (*addNumbers1)(double, double){
+        [](double a, double b){
+            return (a + b);
+        }
+    };
+
+    addNumbers1(1, 2);
+
+
+    // method #2: using std::function to define a fnxn pointer
+    // the lambda could have a non-empty capture clause
+    std::function<double(double, double)> addNumbers2{
+        [](double a, double b){
+            return (a + b);
+        }
+    };
+
+    addNumbers2(3, 4);
+
+    // method #3: using auto
+    // stores the lambda with its real type
+    auto addNumbers3{
+        [](double a, double b){
+            return (a + b);
+        }
+    };
+
+    addNumbers3(5, 6);
+
+    return 0;
+}
+```
+
+The downside to using auto is that we don't know the type ahead of time, which means that we can't pass the function into another function (e.g. as in the sort example). If you want to pass the function into another function, use std::function.
+
+**Rule:** use `auto` when initializing variables with lambdas, and std::function if you can't initialize the variable with the lambda.
+
+### **Generic lambdas**
+**Generic lambdas** can work with a wide variety of types because they can use one or more `auto` parameters as of C++14. When used in the context of a lambda, `auto` is just shorthand for a template parameter.
+
+A generic lambda example:
+```cpp
+#include <algorithm>
+#include <array>
+#include <iostream>
+#include <string_view>
+
+int main()
+{
+    constexpr std::array<const char* 12> months{
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    }
+
+    // search for two consecutive months that start with the same letter
+    // if there are two adjacent months that start with the same letter, 
+    // sameLetter will be the address of the first month
+    const auto sameLetter{ 
+        std::adjacent_find(months.begin()
+        , months.end()
+        , [](const auto &a, const auto &b){
+            return (a[0] == b[0])
+        }
+    )};
+
+    // make sure that two months were found (i.e. sameLetter is not the end address of months)
+    if (sameLetter != months.end())
+    {
+        // std::next returns the next iterator after sameLetter
+        std::cout << *sameLetter << " and " << *std::next(sameLetter) << "start with the same letter\n";
+    }
+
+    return 0;
+}
+```
+
+Above, `auto` allows you to use the lambda function with multiple string types including std::string, C-style strings, or others. 
+
+However, auto parameters may not be the best choice if a particular parameter offers certain benefits. For example, std::string has a lot of extra features that you may want to use in a lambda function that would require the user pass in an std::string.
+
+### **Generic lambdas and static variables**
+A unique lambda will be generated for each different type that `auto` resolves to. Most of the time this is inconsequential. However, be aware that the different unique lambdas will not share static duration variables.
+
+### **Return type deduction and trailing return types**
+If return type deduction is used, a lambda's return type is deduced from the return statements in the lambda. If return type deduction is used, all return statements in the lambda must return the same type.
+
+In cases where we're returning different types, we have two options:
+1. Do explicit casts to make all the return types match.
+2. (preferred) Explicitly specify a return type for the lambda and let the compiler do implicit conversions.
+
+### **Standard library function objects**
+Instead of converting common operations to lambdas, check if the std library has them first. For example, the function `greater()` is available as `std::greater()`.
+
+### **Conclusion**
+For a couple of examples on lambdas in actions, see [quiz 1](../11-projects/11-13-quiz-1/main.cpp) and [quiz 2](../11-projects/11-13-quiz-2/main.cpp)
+
+## [**11.14 - Lambda Captures**](https://www.learncpp.com/cpp-tutorial/lambda-captures/)
+Lambdas can only access specific kinds of identifiers: global identifiers, entities that are known at compile-time, and entities with static storage duration. 
+
+Lambdas CANNOT access entities input at runtime. However, that's what the capture clause is for.
+
+### **The capture clause** 
+The **capture clause** is used to (indirectly) give a lambda access to variables in the surrounding scope. We just need to list the variables that we want to give the lambda access to.
+
+**Key insight:** the captured variables of a lambda are *clones* of the outer scope variables (same name and copied value), not the actual variables.
+
+### **Captures default to const value**
+By default, variables are captured by `const` value. This means that when the lambda is created, the lambda captures a const copy of the outer scope variable that it CANNOT modify. Trying to do so will result in a compiler error.
+
+### **Mutable capture by value**
+To allow modifications of variables that were captured by value, make the lambda as `mutable`. The **mutable** keyword in this context removes the const qualification from *all* variables captured by value. However, it does not modify the original argument passed to the lambda. A copy is still made, and the lambda's copy is modified.
+
+### **Capture by reference**
+We can capture variables by reference into the lambda function. This will allow us to modify the original argument WITHOUT using the mutable keyword. For example,
+```cpp
+#include <iostream>
+
+int main()
+{
+    int ammo{ 10 };
+
+    auto shoot{
+        [&ammo](){
+            --ammo;
+            std::cout << "Pew! " << ammo << " shot(s) left.\n";
+        }
+    }
+
+    shoot();
+
+    std::cout << ammo << " shot(s) left\n";
+
+    return 0;
+}
+```
+outputs:
+```
+Pew! 9 shot(s) left.
+9 shot(s) left
+```
+
+### **Capturing multiple variables**
+Capture multiple varialbes by separating them with a comma like so:
+```cpp
+int health{ 33 };
+int armor{ 100 };
+std::vector<CEnemy> enemies{};
+
+// capture health and armor by value, enemies by reference
+[health, armor, &enemies](){};
+```
+
+### **Default captures**
+A **default capture** (a.k.a. **capture-default**) captures all variables that are mentioned (used) in the lambda. You can default capture by value and by reference. However, you must make sure to only capture each variable once. Some examples:
+
+```cpp
+int health{ 33 };
+int armor{ 100 };
+std::vector<CEnemy> enemies{};
+
+// capture health and armor by value, enemies by ref
+[health, armor, &enemies](){};
+
+// capture enemies by ref and all others by value
+[=, &enemies](){};
+
+// capture armor by value and all others by ref
+[&, armor](){};
+
+// ILLEGAL, captured armor by value twice
+[&, &armor](){};
+
+// ILLEGAL, we already captured everything by value
+[=, armor](){};
+
+// ILLEGAL, armor appears twice
+[armor, &health, &armor](){};
+
+// ILLEGAL, the default capture must be the first element in the capture group
+[armor, &](){};
+```
+
+### **Defining new variables in the lambda-capture**
+If we want to capture a variable with a slight modification, or create a new variable that is only visible in the scope of the lambda, we can define a variable in the lambda-capture WITHOUT specifiying its type. 
+
+The variable will be calculated/defined only once when the lambda is defined, and the variable is stored in the lambda object and is the same for every call. 
+
+If a lambda is mutable and modifies a variable that was defined in the capture, the original value WILL be overridden.
+
+**Best practice:** only initialize variables in the capture if their value is short and their type is obvious. Otherwise, it's best to define the variable outside of the lambda and capture it.
+
+### **Dangling captured variables**
+Variables are captured at the point where the lambda is defined. If a variable captured by ref dies before the lambda, the lambda will be left holding a dangling reference.
+
+**Warning:** be extra careful when you capture variables by reference, especially with a default reference capture. The captured variables must outlive the lambda.
+
+### **Unintended copies of mutable lambdas**
+Problems may arise if you unintentionally copy a lambda that carries a state variable (e.g. count).
+
+**Rule:** standard library functions may copy function objects (reminder: lambdas are function objects). If you want to provide lambdas with mutable captured variables, pass them by reference using std::ref.
+
+**Best practice:** try to avoid lambdas with states altogether. Stateless lambdas are easier to understand and don't suffer from the above issues as well as more dangerous issues when we get to parallel execution.
