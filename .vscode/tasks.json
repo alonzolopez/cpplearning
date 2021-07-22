@@ -8,6 +8,7 @@
 			"args": [
 				"-g",
 				"${file}",
+				"${fileDirname}/point2d.cpp",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}"
 			],
