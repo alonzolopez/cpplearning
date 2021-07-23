@@ -8,7 +8,7 @@
 			"args": [
 				"-g",
 				"${file}",
-				"${fileDirname}/monster.cpp",
+				// "${fileDirname}/monster.cpp",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}"
 			],
